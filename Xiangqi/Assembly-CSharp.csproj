@@ -65,9 +65,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\BoardScript\Board.cs" />
-    <Compile Include="Assets\Scripts\GameManager.cs" />
     <Compile Include="Assets\Scripts\Player\HumanPlayer.cs" />
     <Compile Include="Assets\Scripts\Input\MoveInput.cs" />
+    <Compile Include="Assets\Scripts\Managers\UIManager.cs" />
+    <Compile Include="Assets\Scripts\Managers\GameManager.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerScript.cs" />
     <Compile Include="Assets\Scripts\Input\PieceInput.cs" />
     <Compile Include="Assets\Scripts\Enum\PlayerColor.cs" />
@@ -94,6 +95,7 @@
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Mobile SSD.shader" />
     <None Include="Assets\TextMesh Pro\Resources\LineBreaking Leading Characters.txt" />
     <None Include="Assets\TextMesh Pro\Shaders\TMPro_Properties.cginc" />
+    <None Include="Assets\UI\karasha\READ ME !!!.txt" />
     <None Include="Assets\TextMesh Pro\Shaders\TMPro_Surface.cginc" />
     <None Include="Assets\TextMesh Pro\Resources\LineBreaking Following Characters.txt" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Mobile Masking.shader" />

@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Numerics;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using Quaternion = UnityEngine.Quaternion;
 using Vector2 = UnityEngine.Vector2;
@@ -12,26 +11,24 @@ public class Board : MonoBehaviour
 {
     public static float BOARD_SQUARE_LENGTH = 0.8625f;
     public static float BOARD_SQUARE_HEIGHT = 3.88f;
-
-    //pieces sprite asset of black and redd pieces and the prefab of the piece
-    [SerializeField] private Sprite[] redPiecesSprites;
-    [SerializeField] private Sprite[] blackPiecesSprites;
-    [SerializeField] private GameObject chessPiecePrefab;
-    [SerializeField] private GameObject moveDotPrefab;
-
     
     //array that keeps all the positions with int that represent the piece and the color
     private Piece[,] pieces = new Piece[10, 9];
+     
     //bitboard
     private BitBoard bitBoard;
     
     private GameManager gameManager;
+    private UIManager uIManager;
 
 
 
-    public void CreateBoard(PlayerColor playerColor, GameManager gameManager)
+    public void CreateBoard(PlayerColor playerColor, GameObject gameManager)
     {
-        this.gameManager = gameManager;
+        //setup 
+        this.gameManager = gameManager.GetComponent<GameManager>();
+        this.uIManager = gameManager.GetComponent<UIManager>();
+        bitBoard = GetComponent<BitBoard>();
 
         //when player playing red pieces
         string startFenRed = "rneakaenr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNEAKAENR";
@@ -43,7 +40,6 @@ public class Board : MonoBehaviour
         gameFen = playerColor==PlayerColor.Red ? startFenRed : startFenBlack;
         LoadPositionFromFen(gameFen);
 
-        bitBoard = GetComponent<BitBoard>();
         bitBoard.SetBitBoards(pieces);
         bitBoard.PrintCurrentBitBoard();
     }
@@ -82,11 +78,8 @@ public class Board : MonoBehaviour
                     Piece.PieceColor pieceColor = (char.IsUpper(symbol)) ? Piece.PieceColor.Red : Piece.PieceColor.Black;
                     //get the piece int by sent the letter to the piecetypefromsymbol 
                     Piece.PieceType pieceType = pieceTypeFromSymbol[char.ToLower(symbol)];
-                    //the position index is  rank, file and the piece is color + type
                     
-                    //Piece currentPiece = new Piece(pieceType, pieceColor, file, rank);
-                    //pieces[rank, file] = currentPiece;
-                    DrawPiece(file, rank, pieceType, pieceColor);
+                    pieces[rank, file] = uIManager.DrawPiece(file, rank, pieceType, pieceColor);
                     
                     file++;
                 }
@@ -94,62 +87,37 @@ public class Board : MonoBehaviour
         }
     }
 
-
-    //go through the the position array and instatntiate the pieces on the board
-    public void DrawPiece(int x, int y, Piece.PieceType pieceType, Piece.PieceColor pieceColor)
+    public List<Vector2> CreatePieceDots(BigInteger dotsBitboard, GameObject piece, int startX, int startY)
     {
-        //instantiate the peice by calculate the position of the piece by multiple the *index* and the board square length and height
-        GameObject obj = Instantiate(chessPiecePrefab, positionToVector2(x, y), Quaternion.identity);
-        //add the new piece to the pieces array
-        obj.transform.parent = gameObject.transform;
-        
-        //change the name of the piece for the specific piece and color
-        obj.name = pieceType + " " + pieceColor;
+        uIManager.DeleteDots();
+        //delete all the positions that have piece with the same color of this piece
+        dotsBitboard = bitBoard.BitboardMovesWithoutDefence(dotsBitboard, gameManager.GetTurnColor());
 
-        obj.GetComponent<Piece>().SetPiece(pieceType, pieceColor, x, y);
-        pieces[y, x] = obj.GetComponent<Piece>();
-
-
-        //set the piece sprite 
-        //if the position / 10 is 1 so the piece its red and the piece sprite is in the red pieces sprites array
-        //red
-        if(pieceColor == Piece.PieceColor.Red){
-            //change the piece sprite
-            obj.GetComponent<SpriteRenderer>().sprite = redPiecesSprites[(int)pieceType - 1];
-        }
-        //if the position / 10 is 2 so the piece its black and the piece sprite is in the black pieces sprites array
-        //black
-        else{
-            //change the piece sprite 
-            obj.GetComponent<SpriteRenderer>().sprite = blackPiecesSprites[(int)pieceType - 1];
-        }
-    }
-
-    public void drawDots(BigInteger dotsBitboard, GameObject piece, BigInteger moves)
-    {
-        deleteDots();
-
+        //change the bitboard moves to vector2 positions
         List<Vector2> dotsPos = bitBoard.BitboardToVector2s(dotsBitboard);
-        //create dots for the new piece
+
+        //save the valids moves
+        List<Vector2> validMoves = new List<Vector2>();
+        //create dots for every position
         foreach(Vector2 dotPos in dotsPos)
         {
-            GameObject dotObject = Instantiate(moveDotPrefab, positionToVector2((int)dotPos.x, (int)dotPos.y), Quaternion.identity);
-            dotObject.transform.parent = piece.transform;
-            dotObject.GetComponent<MoveInput>().SetPos(dotPos);
+            bool isCheckAfterThisMove = IsKingUnderAttackAfterMove(new Move(startX, startY, (int)dotPos.x, (int)dotPos.y), (PlayerColor)((int)gameManager.GetTurnColor() ^ 1));
+            //if there is no check after the move draw the dot
+            if(!isCheckAfterThisMove)
+            {
+                uIManager.DrawDot(piece, dotPos);
+                validMoves.Add(dotPos);
+            }
+            
         }
-
-        gameManager.bitboardText.text = BitBoard.BigIntegerToBinaryString(moves);
+        return validMoves;
     }
 
-    private void deleteDots()
+    public BitBoard GetBitBoard()
     {
-        //remove the dots of the last piece
-        GameObject[] dots = GameObject.FindGameObjectsWithTag("Dot");
-        foreach(GameObject dot in dots)
-        {
-            Destroy(dot.gameObject);
-        }
+        return bitBoard;
     }
+
 
     public Piece GetPieceAtPosition(int x, int y)
     {
@@ -157,7 +125,7 @@ public class Board : MonoBehaviour
     }
 
     //check there is piece in the input position
-    public bool checkIfThereIsPiece(int x, int y)
+    public bool CheckIfThereIsPiece(int x, int y)
     {
         if(checkIfInBorders(x, y)){
             return pieces[y, x]!=null;
@@ -165,121 +133,148 @@ public class Board : MonoBehaviour
         return false;
     }
 
+    public bool CheckIfPieceIsKing(int x, int y)
+    {
+        return pieces[y, x].GetPieceType() == Piece.PieceType.King;
+    }
+
     //return if position is in the board borders
     public static bool checkIfInBorders(int x, int y)
     {
         return x>=0 && y>=0 && x<9 && y < 10;
-    }
+    } 
 
-    //translate position in int to vector3
-    private  Vector2 positionToVector2(int x, int y)
+    public void  UpdatePieceInBoard(Move move)
     {
-        return new Vector2((x * Board.BOARD_SQUARE_LENGTH) - (Board.BOARD_SQUARE_LENGTH*4), (y * Board.BOARD_SQUARE_LENGTH)-Board.BOARD_SQUARE_HEIGHT);
-    }
-
-    public void  updatePieceInBoard(Move move)
-    {
-        deleteDots();
+        uIManager.DeleteDots();
 
         Piece piece = pieces[move.getStartY(), move.getStartX()];
         //check if there is piece and take the piece if true
         if(pieces[move.getEndY(), move.getEndX()])
-            eatPiece(move.getEndX(), move.getEndY());
+            uIManager.RemovePiece(pieces[move.getEndY(), move.getEndX()]);
+
         //update piece in board array
         pieces[move.getStartY(), move.getStartX()] = null;
         pieces[move.getEndY(), move.getEndX()] = piece;
+
         //update piece axis
-        piece.gameObject.transform.position = positionToVector2(move.getEndX(), move.getEndY());
+        uIManager.MovePieceInScreen(piece, move);
+
         //update the piece in the bitboard
         bitBoard.UpdateBitBoard(move, piece.GetPieceColor());
 
         //check if there is check on the king now
         IsKingUnderAttack();
 
-        gameManager.changeTurn();
+        gameManager.ChangeTurn();
     }
 
     private void IsKingUnderAttack()
     {
-        if(bitBoard.IsCheck(pieces, gameManager.getTurnColor()))
+        if(bitBoard.IsCheck(pieces, gameManager.GetTurnColor()))
         {
-            print("check");
-            IsCheckMate();
+            //find the enemy king and draw the check circle
+            Vector2 enemyKingPos = FindEnemyKingPos();
+            uIManager.DrawCheckCircle((int)enemyKingPos.x, (int)enemyKingPos.y, true);
+
+            //check if check mate
+            if(IsCheckMate())
+            {
+                gameManager.CheckMate();
+            }
+        }
+        else
+        {
+            //if there is no check remove the circle
+            uIManager.DrawCheckCircle(0, 0, false);
         }
     }
 
-    public bool IsKingUnderAttackAfterMove(Move move)
+    private Vector2 FindEnemyKingPos()
     {
-        //create clone of the board
-        Piece[,] piecesAfterMove = (Piece[,])pieces.Clone();
+        PlayerColor enemyColor = (PlayerColor)((int)gameManager.GetTurnColor()^1);
+        //if the enemy is on the down side check just down palace to find the king
+        if(!gameManager.GetTurnPlayer().playOnDownSide())
+            for(int x = 3; x<6; x++)
+            {
+                for(int y = 0; y < 3; y++)
+                    if(pieces[y, x] && pieces[y, x].GetPieceType() == Piece.PieceType.King)
+                        return new Vector2(x, y);
+            }
+        else
+            for(int x = 3; x<6; x++)
+            {
+                for(int y = 7; y < 10; y++)
+                    if(pieces[y, x] && pieces[y, x].GetPieceType() == Piece.PieceType.King)
+                        return new Vector2(x, y);
+            }
 
+        return Vector2.zero;
+    }
+
+    public bool IsKingUnderAttackAfterMove(Move move, PlayerColor playerColor)
+    {
+        //create clone to save the board before
+        Piece[,] saveBoard = CloneBoard(pieces);
         //do the move
-        Piece pieceToMove = piecesAfterMove[move.getStartY(), move.getStartX()];
-        piecesAfterMove[move.getStartY(), move.getStartX()] = null;
-        piecesAfterMove[move.getEndY(), move.getEndX()] = pieceToMove;
+        Piece pieceToMove = pieces[move.getStartY(), move.getStartX()];
+        pieces[move.getStartY(), move.getStartX()] = null;
+        pieces[move.getEndY(), move.getEndX()] = pieceToMove;
 
-        return bitBoard.IsCheck(piecesAfterMove, (PlayerColor)((int)gameManager.getTurnColor()^1));
+        bool isKingUnderAttackAfterMove = bitBoard.IsCheck(pieces, playerColor);
+
+        pieces = saveBoard;
+
+        return isKingUnderAttackAfterMove;
     }
 
-    private void IsCheckMate()
+    private Piece[,] CloneBoard(Piece[,] board)
     {
-        if(bitBoard.IsCheckMate())
-        {
-            print("check mate GG");
-        }
-    }
-
-    private void eatPiece(int x, int y)
-    {
-        Destroy(pieces[y, x].gameObject);
-    }
-/*
-    public static Boolean thereIsCheckMate()
-    {
-        List<int> movesPossible = new List<int>();
-
-        PieceController pc;
-        //go through all pieces and add their moves to the list
-        for(int i =0; i< pieces.Length; i++)
-        {
+        Piece[,] clone = new Piece[10, 9];
         
-            if(pieces[i]!=null){
-                pc = pieces[i].GetComponent<PieceController>();
-                if(pc.GetColor() == GameManager.getTurnColor())
+        for (int y = 0; y < 10; y++)
+        {
+            for (int x = 0; x < 9; x++)
+            {
+                clone[y, x] = board[y, x];
+            }
+        }
+
+        return clone;
+    }
+
+    private bool IsCheckMate()
+    {
+        //save the enemy color to check if he has valid moves to do
+        PlayerColor enemyColor = (PlayerColor)((int)gameManager.GetTurnColor()^1);
+        
+        for (int y = 0; y < 10; y++)
+        {
+            for (int x = 0; x < 9; x++)
+            {
+                Piece piece = pieces[y, x];
+                //if the piece is the enemy piece check what valid moves it can do
+                if(piece && (int)piece.GetPieceColor() == (int)enemyColor)
                 {
-                    movesPossible.AddRange(pc.getMoveOptions());
+                    BigInteger pieceMoveOptions = piece.GetPieceBitboardMove();
+                    pieceMoveOptions = bitBoard.BitboardMovesWithoutDefence(pieceMoveOptions, enemyColor);
+
+                    List<Vector2> movesList = bitBoard.BitboardToVector2s(pieceMoveOptions);
+
+                    foreach(Vector2 move in movesList)
+                    {
+                        bool isCheckAfterThisMove = IsKingUnderAttackAfterMove(new Move(x, y, (int)move.x, (int)move.y), gameManager.GetTurnColor());
+                        
+                        //if there is no check after the move draw the dot
+                        if(!isCheckAfterThisMove){
+                            return false;
+                        }
+                    }
                 }
             }
         }
-    
-        return movesPossible.Count ==0;
+        //if it doesnt find a piece that has move return true because its check mate
+        return true;
     }
 
-    //return if king is under attack after move
-    public static Boolean kingUnderAttackAfterMove(int lastPos, int newPos)
-    {
-        //initial the new arrays for the move
-        int[] newPositions = (int[])positions.Clone();
-        GameObject[] newPieces = (GameObject[])pieces.Clone();
-
-        //update the new move in the positions
-        newPositions[newPos] = newPositions[lastPos];
-        newPositions[lastPos] = 0;
-        
-        //update the new move in the pieces
-        newPieces[newPos] = newPieces[lastPos];
-        newPieces[lastPos] = null;
-        //
-        
-        int currentKingPos = getCurrentTurnKingPosition(newPositions);
-        
-        
-        King kingPieceMovement = newPieces[currentKingPos].GetComponent<PieceController>().GetPieceMovement() as King;
- 
-        Boolean isCheck = kingPieceMovement.isKingUnderAttack(newPositions, currentKingPos%10, currentKingPos/10);
-
-        //print("the position is y: " + newPos/10 + " x: " + newPos %10 + " and if check is " + isCheck);
-        return isCheck;
-        
-    }*/
 }

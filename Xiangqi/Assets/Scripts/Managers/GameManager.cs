@@ -5,18 +5,18 @@ using TMPro;
 using UnityEngine;
 using Random=UnityEngine.Random;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
     [SerializeField] private Board board;
+    private UIManager uIManager;
     private  PlayerScript[] players = new PlayerScript[2];
     
 
     //save the color of the player
     private int turnInt;
     private int movesCounter;
-    [SerializeField] private TextMeshProUGUI turnColorText;
-    [SerializeField] public TextMeshProUGUI bitboardText;
     [SerializeField] private GameObject KingCirclePrefab;
     //save the object of the king circle
     private GameObject KingCircle;
@@ -24,6 +24,8 @@ public class GameManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        uIManager = GetComponent<UIManager>();
+        uIManager.ChangeTurnText(PlayerColor.Red);
 
         PlayerColor playerColor;
         
@@ -34,19 +36,24 @@ public class GameManager : MonoBehaviour
         turnInt = x; // save the index of the first turn player
         
         //find all computer players in scene
-        int computersPlayers = GameObject.FindGameObjectsWithTag("Player").Length;
+        GameObject[] computersPlayers = GameObject.FindGameObjectsWithTag("Player");
         //initial the players array with 2 player of ais or users
-        if(computersPlayers == 2)
+        if(computersPlayers.Length == 2)
         {
             print("Computer vs Computer");
-            players[0] = new AiPlayer(playerColor, true);//plays on the down side
-            players[1] = new AiPlayer((PlayerColor)((int)playerColor ^ 1), false);//plays on the up side
+            players[0] = computersPlayers[0].GetComponent<AiPlayer>();//plays on the down side
+            players[1] = computersPlayers[1].GetComponent<AiPlayer>();//plays on the up side
+
+            computersPlayers[0].GetComponent<AiPlayer>().SetPlayerScript(playerColor, true);
+            computersPlayers[1].GetComponent<AiPlayer>().SetPlayerScript((PlayerColor)((int)playerColor ^ 1), false);
         }
-        else if(computersPlayers == 1)
+        else if(computersPlayers.Length == 1)
         {
             print("Human vs Computer");
             players[0] = new HumanPlayer(playerColor, true);
-            players[1] = new AiPlayer((PlayerColor)((int)playerColor ^ 1), false);
+            players[1] = computersPlayers[0].GetComponent<AiPlayer>();
+
+            computersPlayers[0].GetComponent<AiPlayer>().SetPlayerScript((PlayerColor)((int)playerColor ^ 1), false);
         }
         //no computer players
         else
@@ -57,46 +64,56 @@ public class GameManager : MonoBehaviour
         }
         
         //initial the board and spawn the pieces
-        board.CreateBoard(playerColor, this);
-    }
+        board.CreateBoard(playerColor, this.gameObject);
 
-    void Update()
-    {
-        //turnColorText.text = turnColor.ToString();
+        IsAiTurn();
     }
-
-    public static void restart()
+    public static void Restart()
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
     
-    public static void stopGame()
+    public void StopGame()
     {
         Time.timeScale = 0;
     }
 
-    public PlayerColor getTurnColor()
+    public PlayerColor GetTurnColor()
     {
-        return players[turnInt].getPlayerColor();
+        return players[turnInt].GetPlayerColor();
     }
 
-    public PlayerScript getTurnPlayer()
+    public PlayerScript GetTurnPlayer()
     {
         return players[turnInt];
     }
-    public void changeTurn()
+    public void ChangeTurn()
     {
         turnInt ^= 1;
-        turnColorText.text = getTurnColor().ToString();
+
+        IsAiTurn();
+        //change the turn text to the current turn
+        uIManager.ChangeTurnText(GetTurnColor());
     }
 
-    public static Boolean checkIfCurrentKingIsUnderAttack()
+    private void IsAiTurn()
     {
-        //return Board.kingUnderAttack(); 
-        return false;
+        //if the current player is ai tell him its his turn
+        AiPlayer currentPlayer = GetTurnPlayer() as AiPlayer;
+        if(currentPlayer)
+        {
+            currentPlayer.YourTurn();
+        }
+    }
+    public void CheckMate()
+    {
+        PlayerColor winnerColor = GetTurnColor();
+        print("GG good game the winner is " + winnerColor.ToString());
+        uIManager.CheckMateText(winnerColor);
+        StopGame();
     }
 
-    public void createKingCircle(int kingPos, Boolean isCheck)
+    public void CreateKingCircle(int kingPos, Boolean isCheck)
     {
         if(KingCircle)
         {

@@ -37,7 +37,6 @@ public class BitBoard : MonoBehaviour
         
         this.redBitboard = redBoard;
         this.blackBitboard = blackBoard;
-        
     }
 
     public void UpdateBitBoard(Move move, Piece.PieceColor color)
@@ -78,7 +77,7 @@ public class BitBoard : MonoBehaviour
 
     public bool IsCheck(Piece[,] pieces, PlayerColor currentTurnColor)
     {   
-        BigInteger kingPos;
+        BigInteger kingPos = 0;
         BigInteger attackPos = 0;
 
         for (int y = 0; y < 10; y++)
@@ -86,37 +85,35 @@ public class BitBoard : MonoBehaviour
             for (int x = 0; x < 9; x++)
             {
                 Piece currentPiece = pieces[y, x];
-                if(!currentPiece)
+                
+                if(currentPiece == null)
                     continue;
-                //check if the piece is king
+                //check if the piece is king and its the color of the enemy
                 if(currentPiece.GetPieceType() == Piece.PieceType.King && (int)currentPiece.GetPieceColor() == ((int)currentTurnColor ^ 1))
                 {
                     kingPos = PosToBitInteger(x, y);
                     continue;
                 }
-                if((int)currentPiece.GetPieceColor() == (int)currentTurnColor)
+                if((int)currentPiece.GetPieceColor() == (int)currentTurnColor){
                     attackPos |= currentPiece.GetPieceBitboardMove();
+
+                }
             }
         }
         
         if((attackPos & kingPos) != 0)
         {
-            GameObject.FindGameObjectWithTag("GameManager").GetComponent<GameManager>().bitboardText.text = BigIntegerToBinaryString(attackPos);
             return true;
         }
        
         return false;
     }
 
-    public bool IsCheckMate()
-    {
-        return false;
-    }
 
     public BigInteger PrintCurrentBitBoard()
     {
         //print the decimal value of the board
-        print(redBitboard | blackBitboard);
+        //print(redBitboard | blackBitboard);
         //print the bit board
         PrintBitBoard(redBitboard);
 
@@ -173,16 +170,15 @@ public class BitBoard : MonoBehaviour
 
     }
 
-    public List<Vector2> BitboardToVector2s(BigInteger bigboard)
+    public List<Vector2> BitboardToVector2s(BigInteger bitboard)
     {
-        int rowLength = 9;
         int totalBits = 90; // Assuming a 9x10 board
         List<Vector2> positions = new List<Vector2>();
 
         for (int i = 0; i < totalBits; i++)
         {
-            if((bigboard & (BigInteger.One << i)) != 0)
-                positions.Add(new Vector2(i%rowLength, (int)i/rowLength));
+            if((bitboard & (BigInteger.One << i)) != 0)
+                positions.Add(new Vector2(i%9, i/9));
         }
 
         return positions;
@@ -199,6 +195,15 @@ public class BitBoard : MonoBehaviour
         
 
         return bitPos;
+    }
+
+    public BigInteger BitboardMovesWithoutDefence(BigInteger bitboardMoves, PlayerColor playerColor)
+    {
+        //red turn
+        if(playerColor == PlayerColor.Red)
+            return (bitboardMoves|redBitboard) ^  redBitboard;
+        //black turn
+        return (bitboardMoves|blackBitboard) ^  blackBitboard;
     }
 
 }

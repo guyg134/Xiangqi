@@ -4,19 +4,19 @@ using UnityEngine;
 
 public abstract class PlayerScript : MonoBehaviour
 {
-    private PlayerColor color;
+    private PlayerColor playerColor;
     private bool downSide;
-    private PlayerColor c;
+   
 
     public PlayerScript(PlayerColor c, bool downSide)
     {
-       this.color = c;
+       this.playerColor = c;
        this.downSide = downSide;
     }
 
-    public PlayerColor getPlayerColor()
+    public PlayerColor GetPlayerColor()
     {
-        return color;
+        return playerColor;
     }
 
     public bool playOnDownSide()
