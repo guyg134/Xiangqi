@@ -125,7 +125,7 @@ public abstract class PieceMovement
     protected bool IsColorOnDownSide()
     {
         PlayerScript currentPlayer = GameObject.FindWithTag("GameManager").GetComponent<GameManager>().GetTurnPlayer();
-        return (!currentPlayer.playOnDownSide() && !((int)color == (int)currentPlayer.GetPlayerColor())) || currentPlayer.playOnDownSide() && (int)color == (int)currentPlayer.GetPlayerColor();
+        return (!currentPlayer.playOnDownSide() && ((int)color != (int)currentPlayer.GetPlayerColor())) || (currentPlayer.playOnDownSide() && (int)color == (int)currentPlayer.GetPlayerColor());
     }
 
 }

@@ -177,11 +177,16 @@ public class Board : MonoBehaviour
             Vector2 enemyKingPos = FindEnemyKingPos();
             uIManager.DrawCheckCircle((int)enemyKingPos.x, (int)enemyKingPos.y, true);
 
-            //check if check mate
-            if(IsCheckMate())
+            //if enemy in check and dont have moves is checkmate
+            if(EnemyDoesntHaveMoves())
             {
                 gameManager.CheckMate();
             }
+        }
+        //check if it stalemate
+        else if(EnemyDoesntHaveMoves())
+        {
+            gameManager.CheckMate();
         }
         else
         {
@@ -243,7 +248,7 @@ public class Board : MonoBehaviour
         return clone;
     }
 
-    private bool IsCheckMate()
+    private bool EnemyDoesntHaveMoves()
     {
         //save the enemy color to check if he has valid moves to do
         PlayerColor enemyColor = (PlayerColor)((int)gameManager.GetTurnColor()^1);

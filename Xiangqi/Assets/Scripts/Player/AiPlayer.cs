@@ -6,21 +6,23 @@ using UnityEngine;
 public class AiPlayer : PlayerScript
 {
     SearchMove searchMove;
-    public AiPlayer(PlayerColor c, bool downSide) : base(c, downSide)
+    public AiPlayer(PlayerColor c, bool downSide, SearchMove searchMove) : base(c, downSide)
     {
+        this.searchMove = searchMove;
+        searchMove.SetSearchMove(c);
+        print(c);
     }
 
     public AiPlayer SetPlayerScript(PlayerColor c, bool downSide)
     {
         searchMove = GetComponent<SearchMove>();
-        searchMove.SetSearchMove(c);
-        print("got set");
-        return this;
+        return new AiPlayer(c, downSide, GetComponent<SearchMove>());
     }
 
 
     public void YourTurn()
     {
         searchMove.FindMove();
+        print(base.GetPlayerColor());
     }
 }

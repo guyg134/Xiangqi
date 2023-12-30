@@ -91,9 +91,10 @@ public class GameManager : MonoBehaviour
     {
         turnInt ^= 1;
 
-        IsAiTurn();
         //change the turn text to the current turn
         uIManager.ChangeTurnText(GetTurnColor());
+
+        IsAiTurn();
     }
 
     private void IsAiTurn()
