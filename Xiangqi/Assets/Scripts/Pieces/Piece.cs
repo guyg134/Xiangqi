@@ -6,16 +6,13 @@ using Vector2 = UnityEngine.Vector2;
 
 public class Piece : MonoBehaviour
 {
-    
-    public enum PieceType {King=1, Soldier=2, Knight=3, Elephant=4, Cannon=5, Advisor=6, Rook=7};
-    public enum PieceColor{Red = 0, Black = 1};
     private PieceType pieceType;
-    private PieceColor pieceColor;
+    private GameColor pieceColor;
     private int x;
     private int y;
     private PieceMovement pieceMovement;
 
-    public void SetPiece(PieceType pieceType, PieceColor pieceColor, int x, int y)
+    public void SetPiece(PieceType pieceType, GameColor pieceColor, int x, int y)
     {
         this.pieceType = pieceType;
         this.pieceColor = pieceColor;
@@ -24,6 +21,16 @@ public class Piece : MonoBehaviour
         this.y = y;
         //print(pieceMovement == null);
         //GameObject.FindGameObjectWithTag("Board").GetComponent<Board>().drawPiece(x, y, pieceType, pieceColor);
+    }
+
+    public int GetX()
+    {
+        return x;
+    }
+
+    public int GetY()
+    {
+        return y;
     }
 
     public PieceType GetPieceType()
@@ -46,23 +53,28 @@ public class Piece : MonoBehaviour
         GameObject.FindGameObjectWithTag("Board").GetComponent<Board>().UpdatePieceInBoard(move);
     }
 
-    public PieceColor GetPieceColor()
+    public GameColor GetPieceColor()
     {
         return pieceColor;
     }
 
     
 
-    public List<Vector2> GetDots()
+    public void GetDots()
+    {
+        GameObject.FindGameObjectWithTag("Board").GetComponent<Board>().CreatePieceDots(gameObject, GetValidMoves());
+    }
+
+    public List<Vector2> GetValidMoves()
     {
         BigInteger moves = GetPieceBitboardMove();
-        return GameObject.FindGameObjectWithTag("Board").GetComponent<Board>().CreatePieceDots(moves, this.gameObject, x, y);
+        return GameObject.FindGameObjectWithTag("Board").GetComponent<Board>().GetValidMoves(moves, this, x, y);
     }
 
 
 public class PieceFactory
 {
-    public static PieceMovement GetPiece(PieceType pieceInt, PieceColor pieceColor)
+    public static PieceMovement GetPiece(PieceType pieceInt, GameColor pieceColor)
     {
         switch((int)pieceInt)
         {
@@ -91,11 +103,11 @@ public class PieceFactory
 
 public abstract class PieceMovement
 {
-    private PieceColor color;
+    private GameColor color;
     protected Board board;
     
 
-    public PieceMovement(PieceColor color)
+    public PieceMovement(GameColor color)
     {
         this.color = color;
         board = GameObject.FindGameObjectWithTag("Board").GetComponent<Board>();
@@ -133,7 +145,7 @@ public abstract class PieceMovement
 
     public class King : PieceMovement 
     {
-        public King(PieceColor color) : base(color)
+        public King(GameColor color) : base(color)
         {
         }
 
@@ -192,7 +204,7 @@ public abstract class PieceMovement
 
     public class Solider : PieceMovement
     {
-        public Solider(PieceColor color) : base(color)
+        public Solider(GameColor color) : base(color)
         {
         }
 
@@ -234,7 +246,7 @@ public abstract class PieceMovement
 
     public class Knight : PieceMovement
     {
-        public Knight(PieceColor color) : base(color)
+        public Knight(GameColor color) : base(color)
         {
         }
 
@@ -280,7 +292,7 @@ public abstract class PieceMovement
 
     public class Elephant : PieceMovement
     {
-        public Elephant(PieceColor color) : base(color)
+        public Elephant(GameColor color) : base(color)
         {
         }
 
@@ -308,7 +320,7 @@ public abstract class PieceMovement
 
     public class Cannon : PieceMovement
     {
-        public Cannon(PieceColor color) : base(color)
+        public Cannon(GameColor color) : base(color)
         {
         }
 
@@ -405,7 +417,7 @@ public abstract class PieceMovement
 
     public class Advisor : PieceMovement
     {
-        public Advisor(PieceColor color) : base(color)
+        public Advisor(GameColor color) : base(color)
         {
         }
 
@@ -433,7 +445,7 @@ public abstract class PieceMovement
 
     public class Rook : PieceMovement
     {
-        public Rook(PieceColor color) : base(color)
+        public Rook(GameColor color) : base(color)
         {
         }
 

@@ -24,14 +24,16 @@ public class GameManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        uIManager = GetComponent<UIManager>();
-        uIManager.ChangeTurnText(PlayerColor.Red);
+        movesCounter = 0;
 
-        PlayerColor playerColor;
+        uIManager = GetComponent<UIManager>();
+        uIManager.ChangeTurnText(GameColor.Red);
+
+        GameColor playerColor;
         
         int x = Random.Range(0,2);
         //random color of the player
-        playerColor = (PlayerColor)x;
+        playerColor = (GameColor)x;
 
         turnInt = x; // save the index of the first turn player
         
@@ -45,7 +47,7 @@ public class GameManager : MonoBehaviour
             players[1] = computersPlayers[1].GetComponent<AiPlayer>();//plays on the up side
 
             computersPlayers[0].GetComponent<AiPlayer>().SetPlayerScript(playerColor, true);
-            computersPlayers[1].GetComponent<AiPlayer>().SetPlayerScript((PlayerColor)((int)playerColor ^ 1), false);
+            computersPlayers[1].GetComponent<AiPlayer>().SetPlayerScript((GameColor)((int)playerColor ^ 1), false);
         }
         else if(computersPlayers.Length == 1)
         {
@@ -53,14 +55,14 @@ public class GameManager : MonoBehaviour
             players[0] = new HumanPlayer(playerColor, true);
             players[1] = computersPlayers[0].GetComponent<AiPlayer>();
 
-            computersPlayers[0].GetComponent<AiPlayer>().SetPlayerScript((PlayerColor)((int)playerColor ^ 1), false);
+            computersPlayers[0].GetComponent<AiPlayer>().SetPlayerScript((GameColor)((int)playerColor ^ 1), false);
         }
         //no computer players
         else
         {
             print("Human vs Human");
             players[0] = new HumanPlayer(playerColor, true);
-            players[1] = new HumanPlayer((PlayerColor)((int)playerColor ^ 1), false);
+            players[1] = new HumanPlayer((GameColor)((int)playerColor ^ 1), false);
         }
         
         //initial the board and spawn the pieces
@@ -78,7 +80,7 @@ public class GameManager : MonoBehaviour
         Time.timeScale = 0;
     }
 
-    public PlayerColor GetTurnColor()
+    public GameColor GetTurnColor()
     {
         return players[turnInt].GetPlayerColor();
     }
@@ -93,8 +95,11 @@ public class GameManager : MonoBehaviour
 
         //change the turn text to the current turn
         uIManager.ChangeTurnText(GetTurnColor());
+        if(Time.timeScale != 0)
+            IsAiTurn();
 
-        IsAiTurn();
+        uIManager.ChangeEvalBar((float)Evaluate.EvaluateFunc(board.GetBoard(), GetTurnColor()));
+        movesCounter++;
     }
 
     private void IsAiTurn()
@@ -108,20 +113,17 @@ public class GameManager : MonoBehaviour
     }
     public void CheckMate()
     {
-        PlayerColor winnerColor = GetTurnColor();
+        GameColor winnerColor = GetTurnColor();
         print("GG good game the winner is " + winnerColor.ToString());
         uIManager.CheckMateText(winnerColor);
         StopGame();
     }
 
-    public void CreateKingCircle(int kingPos, Boolean isCheck)
+    public void Draw()
     {
-        if(KingCircle)
-        {
-            Destroy(KingCircle);
-            return;
-        }
-       // if(isCheck)
-            //KingCircle = Instantiate(KingCirclePrefab, Board.positionToVector3(kingPos%10, kingPos/10), Quaternion.identity);
+        print("Draw");
+        uIManager.DrawText();
+        StopGame();
     }
+
 }

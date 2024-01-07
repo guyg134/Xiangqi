@@ -4,8 +4,9 @@ using UnityEngine;
 
 public class HumanPlayer : PlayerScript
 {
-    public HumanPlayer(PlayerColor c, bool downSide) : base(c, downSide)
+    public HumanPlayer(GameColor c, bool downSide)
     {
+        SetPlayer(c, downSide);
     }
 
 

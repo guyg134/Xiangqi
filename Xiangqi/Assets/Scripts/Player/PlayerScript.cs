@@ -4,17 +4,18 @@ using UnityEngine;
 
 public abstract class PlayerScript : MonoBehaviour
 {
-    private PlayerColor playerColor;
+    private GameColor playerColor;
     private bool downSide;
    
 
-    public PlayerScript(PlayerColor c, bool downSide)
+    public PlayerScript SetPlayer(GameColor c, bool downSide)
     {
-       this.playerColor = c;
-       this.downSide = downSide;
+        this.playerColor = c;
+        this.downSide = downSide;
+        return this;
     }
-
-    public PlayerColor GetPlayerColor()
+    
+    public GameColor GetPlayerColor()
     {
         return playerColor;
     }
@@ -23,4 +24,5 @@ public abstract class PlayerScript : MonoBehaviour
     {
         return downSide;
     }
+
 }

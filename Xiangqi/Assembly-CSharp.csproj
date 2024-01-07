@@ -71,11 +71,12 @@
     <Compile Include="Assets\Scripts\Managers\GameManager.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerScript.cs" />
     <Compile Include="Assets\Scripts\Input\PieceInput.cs" />
-    <Compile Include="Assets\Scripts\Enum\PlayerColor.cs" />
     <Compile Include="Assets\Scripts\Player\AiPlayer.cs" />
     <Compile Include="Assets\Scripts\BoardScript\BitBoard.cs" />
+    <Compile Include="Assets\Scripts\Enum\GameColor.cs" />
     <Compile Include="Assets\Scripts\AI\SearchMove.cs" />
     <Compile Include="Assets\Scripts\Pieces\PieceController.cs" />
+    <Compile Include="Assets\Scripts\Enum\PieceType.cs" />
     <Compile Include="Assets\Scripts\Pieces\Move.cs" />
     <Compile Include="Assets\Scripts\Pieces\Piece.cs" />
     <Compile Include="Assets\Scripts\AI\Evaluate.cs" />
