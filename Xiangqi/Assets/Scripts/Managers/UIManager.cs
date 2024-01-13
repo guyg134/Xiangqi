@@ -13,11 +13,13 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject chessPiecePrefab;
     [SerializeField] private GameObject moveDotPrefab;
 
+
+    [SerializeField] public TextMeshProUGUI movesNumberText;
     [SerializeField] public TextMeshProUGUI turnColorText;
     [SerializeField] public Color redColor;
     [SerializeField] public Color blackColor;
 
-    [SerializeField] private Slider evalBar;
+    [SerializeField] private Image evalBar;
     [SerializeField] private TextMeshProUGUI evalText;
 
     [SerializeField] private GameObject winnerText;
@@ -68,9 +70,14 @@ public class UIManager : MonoBehaviour
         Destroy(piece.gameObject);
     }
 
-    public  Vector2 PositionToVector2(int x, int y)
+    private  Vector2 PositionToVector2(int x, int y)
     {
-        return new Vector2((x * Board.BOARD_SQUARE_LENGTH) - (Board.BOARD_SQUARE_LENGTH*4), (y * Board.BOARD_SQUARE_LENGTH)-Board.BOARD_SQUARE_HEIGHT);
+        return new Vector2((x * GameBoard.BOARD_SQUARE_LENGTH) - (GameBoard.BOARD_SQUARE_LENGTH*4), (y * GameBoard.BOARD_SQUARE_LENGTH)-GameBoard.BOARD_SQUARE_HEIGHT);
+    }
+
+    public void ChangeMovesNumberText(int moves)
+    {
+        movesNumberText.text = moves.ToString();
     }
 
     public void DrawDot(GameObject piece, Vector2 pos)
@@ -111,10 +118,11 @@ public class UIManager : MonoBehaviour
             turnColorText.GetComponent<TextMeshProUGUI>().color = blackColor;
     }
 
-    public void ChangeEvalBar(float value)
+    public void ChangeEvalBar(double value)
     {
-        evalBar.value = value;
-        evalText.text = value.ToString();
+        evalBar.fillAmount = (float)value + 0.5f;
+        //set the eval bar number to the first 4 numbers so 0.123
+        evalText.text = value.ToString("#0.000").Substring(0, 5);
     }
 
     public void CheckMateText(GameColor winnerColor)

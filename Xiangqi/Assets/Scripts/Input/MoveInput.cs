@@ -25,13 +25,13 @@ public class MoveInput : InputScript
         piece = transform.parent.gameObject.GetComponent<Piece>();
     }
 
-    protected override void setPiece()
-    {
-       
-    }
-
     protected override void click()
     {
         piece.MovePiece(pos);
+    }
+
+    protected override void setPiece()
+    {
+        throw new System.NotImplementedException();
     }
 }

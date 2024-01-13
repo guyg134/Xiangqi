@@ -4,21 +4,23 @@ using UnityEngine;
 
 public class HumanPlayer : PlayerScript
 {
+    private GameColor playerColor;
+    private bool playOnDownSide;
+
     public HumanPlayer(GameColor c, bool downSide)
     {
-        SetPlayer(c, downSide);
+        playerColor = c;
+        playOnDownSide = downSide;
     }
 
-
-    // Start is called before the first frame update
-    void Start()
+    public GameColor GetPlayerColor()
     {
-        
+        return playerColor;
     }
 
-    // Update is called once per frame
-    void Update()
+    public bool PlayOnDownSide()
     {
-        
+        return playOnDownSide;
     }
+
 }

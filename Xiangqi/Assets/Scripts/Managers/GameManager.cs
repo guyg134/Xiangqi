@@ -9,7 +9,7 @@ using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
-    [SerializeField] private Board board;
+    [SerializeField] private GameBoard gameBoard;
     private UIManager uIManager;
     private  PlayerScript[] players = new PlayerScript[2];
     
@@ -18,8 +18,7 @@ public class GameManager : MonoBehaviour
     private int turnInt;
     private int movesCounter;
     [SerializeField] private GameObject KingCirclePrefab;
-    //save the object of the king circle
-    private GameObject KingCircle;
+    
 
     // Start is called before the first frame update
     void Start()
@@ -46,8 +45,8 @@ public class GameManager : MonoBehaviour
             players[0] = computersPlayers[0].GetComponent<AiPlayer>();//plays on the down side
             players[1] = computersPlayers[1].GetComponent<AiPlayer>();//plays on the up side
 
-            computersPlayers[0].GetComponent<AiPlayer>().SetPlayerScript(playerColor, true);
-            computersPlayers[1].GetComponent<AiPlayer>().SetPlayerScript((GameColor)((int)playerColor ^ 1), false);
+            computersPlayers[0].GetComponent<AiPlayer>().SetPlayer(playerColor, true);
+            computersPlayers[1].GetComponent<AiPlayer>().SetPlayer(playerColor.OppositeColor(), false);
         }
         else if(computersPlayers.Length == 1)
         {
@@ -55,18 +54,18 @@ public class GameManager : MonoBehaviour
             players[0] = new HumanPlayer(playerColor, true);
             players[1] = computersPlayers[0].GetComponent<AiPlayer>();
 
-            computersPlayers[0].GetComponent<AiPlayer>().SetPlayerScript((GameColor)((int)playerColor ^ 1), false);
+            computersPlayers[0].GetComponent<AiPlayer>().SetPlayer(playerColor.OppositeColor(), false);
         }
         //no computer players
         else
         {
             print("Human vs Human");
             players[0] = new HumanPlayer(playerColor, true);
-            players[1] = new HumanPlayer((GameColor)((int)playerColor ^ 1), false);
+            players[1] = new HumanPlayer(playerColor.OppositeColor(), false);
         }
         
         //initial the board and spawn the pieces
-        board.CreateBoard(playerColor, this.gameObject);
+        gameBoard.CreateBoard(playerColor, gameObject);
 
         IsAiTurn();
     }
@@ -80,6 +79,11 @@ public class GameManager : MonoBehaviour
         Time.timeScale = 0;
     }
 
+    public void GoBackLastMoves()
+    {
+
+    }
+
     public GameColor GetTurnColor()
     {
         return players[turnInt].GetPlayerColor();
@@ -88,6 +92,11 @@ public class GameManager : MonoBehaviour
     public PlayerScript GetTurnPlayer()
     {
         return players[turnInt];
+    }
+
+    public int GetMovesCounter()
+    {
+        return movesCounter;
     }
     public void ChangeTurn()
     {
@@ -98,18 +107,26 @@ public class GameManager : MonoBehaviour
         if(Time.timeScale != 0)
             IsAiTurn();
 
-        uIManager.ChangeEvalBar((float)Evaluate.EvaluateFunc(board.GetBoard(), GetTurnColor()));
-        movesCounter++;
+        float eval = (float)Evaluate.EvaluateFunc(gameBoard.GetBoard(), GetTurnColor())/10000;
+        print(eval);
+        uIManager.ChangeEvalBar(eval);
+        uIManager.ChangeMovesNumberText(++movesCounter);
     }
 
     private void IsAiTurn()
     {
         //if the current player is ai tell him its his turn
         AiPlayer currentPlayer = GetTurnPlayer() as AiPlayer;
-        if(currentPlayer)
+        if(currentPlayer != null)
         {
             currentPlayer.YourTurn();
         }
+    }
+
+    public bool IsColorOnDownSide(GameColor gameColor)
+    {
+        PlayerScript currentPlayer = GetTurnPlayer();
+        return (!currentPlayer.PlayOnDownSide() && gameColor != currentPlayer.GetPlayerColor()) || (currentPlayer.PlayOnDownSide() && gameColor == currentPlayer.GetPlayerColor());
     }
     public void CheckMate()
     {

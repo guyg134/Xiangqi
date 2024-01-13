@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using System.Numerics;
 using UnityEngine;
 using Vector2 = UnityEngine.Vector2;
@@ -13,30 +14,10 @@ public class BitBoard : MonoBehaviour
     private BigInteger redBitboard = 0;
 
 
-    public void SetBitBoards(Piece[,] pieces)
+    public void SetBitBoards(Board board)
     {
-        BigInteger redBoard = 0;
-        BigInteger blackBoard = 0;
-
-        for (int row = 0; row < 10; row++)
-        {
-            for (int col = 0; col < 9; col++)
-            {
-                Piece piece = pieces[row, col];
-                if(!piece) continue;
-
-                // Set the corresponding bit position based on the piece type
-                BigInteger bitPosition = row * 9 + col;
-                BigInteger bitValue = piece ? 1 : 0;
-                if(piece.GetPieceColor() == GameColor.Red)
-                    redBoard |= bitValue << (int)bitPosition;
-                else
-                    blackBoard |= bitValue << (int)bitPosition;
-            }
-        }
-        
-        this.redBitboard = redBoard;
-        this.blackBitboard = blackBoard;
+        redBitboard = BoardToBitboardByColor(board, GameColor.Red);
+        blackBitboard = BoardToBitboardByColor(board, GameColor.Black);
     }
 
     public BigInteger GetRedBitboard()
@@ -85,29 +66,12 @@ public class BitBoard : MonoBehaviour
         }
     }
 
-    public bool IsCheck(Piece[,] pieces, GameColor currentTurnColor)
+    public bool IsCheck(Board board, GameColor currentTurnColor)
     {   
-        BigInteger kingPos = 0;
+        BigInteger kingPos = PosToBitInteger(board.FindKing(currentTurnColor.OppositeColor()).GetPos());
         BigInteger attackPos;
 
-        for (int y = 0; y < 10; y++)
-        {
-            for (int x = 0; x < 9; x++)
-            {
-                Piece currentPiece = pieces[y, x];
-                
-                if(currentPiece == null)
-                    continue;
-                //check if the piece is king and its the color of the enemy
-                if(currentPiece.GetPieceType() == PieceType.King && (int)currentPiece.GetPieceColor() == ((int)currentTurnColor ^ 1))
-                {
-                    kingPos = PosToBitInteger(x, y);
-                    continue;
-                }
-            }
-        }
-
-        attackPos = AttackingSquaresBitboard(pieces, currentTurnColor);
+        attackPos = AttackingSquaresBitboard(board, currentTurnColor);
         
         if((attackPos & kingPos) != 0)
         {
@@ -117,26 +81,59 @@ public class BitBoard : MonoBehaviour
         return false;
     }
 
-    public static BigInteger AttackingSquaresBitboard(Piece[,] pieces, GameColor pieceColor)
+    public static BigInteger BoardToBitboardByColor(Board board, GameColor pieceColor)
+    {
+        BigInteger bitboard = 0;
+
+        for(int i = 1; i < 8; i++)
+        {
+            foreach(Piece piece in board.GetPiecesInType((PieceType)i))
+            {
+                // Set the corresponding bit position based on the piece type
+                BigInteger bitPosition = piece.GetY() * 9 + piece.GetX();
+                BigInteger bitValue = piece ? 1 : 0;
+                if(piece.GetPieceColor() == pieceColor)
+                    bitboard |= bitValue << (int)bitPosition;
+            }
+        }
+                
+        return bitboard;
+    }
+
+    public static BigInteger AttackingSquaresBitboard(Board board, GameColor pieceColor)
     {
         BigInteger attackPos = 0;
 
-        for (int y = 0; y < 10; y++)
+        for(int i = 1; i < 8; i++)
         {
-            for (int x = 0; x < 9; x++)
+            foreach(Piece piece in board.GetPiecesInType((PieceType)i))
             {
-                Piece currentPiece = pieces[y, x];
-                
-                if(currentPiece == null)
-                    continue;
-                
-                if((int)currentPiece.GetPieceColor() == (int)pieceColor){
-                    attackPos |= currentPiece.GetPieceBitboardMove();
-
+                if(piece.GetPieceColor() == pieceColor)
+                {
+                    attackPos |= piece.GetPieceBitboardMove(board);
                 }
             }
         }
+                
         return attackPos;
+    }
+
+    //return the piece type of the piece that attacking specific position
+    public static Piece PieceOfAttackingPieceOnPos(Board board, BigInteger pos, GameColor attackingColor)
+    {
+        for(int i = 1; i < 8; i++)
+        {
+            foreach(Piece piece in board.GetPiecesInType((PieceType)i))
+            {
+                if(piece.GetPieceColor() == attackingColor)
+                {
+                    if((pos & piece.GetPieceBitboardMove(board)) != 0)
+                        return piece;
+                }
+            }
+        }
+                
+        return null;
     }
 
     public BigInteger PrintCurrentBitBoard()
@@ -226,6 +223,19 @@ public class BitBoard : MonoBehaviour
         return bitPos;
     }
 
+    public static BigInteger PosToBitInteger(Vector2 pos)
+    {
+        BigInteger bitPos = 0;
+        BigInteger bitPosition = (int)pos.y * 9 + (int)pos.x;
+        BigInteger value = 1;
+        
+        
+        bitPos |= value << (int)bitPosition;
+        
+
+        return bitPos;
+    }
+
     public BigInteger BitboardMovesWithoutDefence(BigInteger bitboardMoves, GameColor playerColor)
     {
         //red turn
@@ -233,26 +243,6 @@ public class BitBoard : MonoBehaviour
             return (bitboardMoves|redBitboard) ^  redBitboard;
         //black turn
         return (bitboardMoves|blackBitboard) ^  blackBitboard;
-    }
-
-    public static BigInteger BoardToBitboardByColor(Piece[,] pieces, GameColor color)
-    {
-        BigInteger colorBitboard = 0;
-        for (int row = 0; row < 10; row++)
-        {
-            for (int col = 0; col < 9; col++)
-            {
-                Piece piece = pieces[row, col];
-                if(!piece) continue;
-
-                // Set the corresponding bit position based on the piece type
-                BigInteger bitPosition = row * 9 + col;
-                BigInteger bitValue = piece ? 1 : 0;
-                if(piece.GetPieceColor() == color)
-                    colorBitboard |= bitValue << (int)bitPosition;
-            }
-        }
-        return colorBitboard;
     }
 
 }

@@ -3,22 +3,29 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 
-public class AiPlayer : PlayerScript
+public class AiPlayer : MonoBehaviour,PlayerScript
 {
-    SearchMove searchMove;
-    public AiPlayer(GameColor c, bool downSide, SearchMove searchMove)
+    private SearchMove searchMove;
+    private GameColor playerColor;
+    private bool playOnDownSide;
+
+    public GameColor GetPlayerColor()
     {
-        this.searchMove = searchMove;
-        searchMove.SetSearchMove(c);
-        print(c);
+        return playerColor;
     }
 
-    public AiPlayer SetPlayerScript(GameColor c, bool downSide)
+    public bool PlayOnDownSide()
     {
+        return playOnDownSide;
+    }
+
+    public PlayerScript SetPlayer(GameColor playerColor, bool downSide)
+    {
+        this.playerColor = playerColor;
+        playOnDownSide = downSide;
+
         searchMove = GetComponent<SearchMove>();
-        SetPlayer(c, downSide);
-        searchMove = GetComponent<SearchMove>();
-        searchMove.SetSearchMove(c);
+        searchMove.SetSearchMove(playerColor);
         return this;
     }
 
