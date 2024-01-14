@@ -118,8 +118,8 @@ public class BitBoard : MonoBehaviour
         return attackPos;
     }
 
-    //return the piece type of the piece that attacking specific position
-    public static Piece PieceOfAttackingPieceOnPos(Board board, BigInteger pos, GameColor attackingColor)
+    //return the piece that attacking the piece on the specific pos
+    public static Piece PieceThatAttackingPieceOnPos(Board board, BigInteger pos, GameColor attackingColor)
     {
         for(int i = 1; i < 8; i++)
         {

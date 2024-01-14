@@ -5,26 +5,24 @@ using UnityEngine;
 public class OpeningBook
 {
 
-    private Dictionary<string, List<Move>> redBook;
-    private Dictionary<string, List<Move>> blackBook;
+    private Dictionary<List<Move>, List<Move>> Book;
     
     public OpeningBook()
     {
         // Initialize your opening book with positions and candidate moves
         // Example:
-        redBook = new Dictionary<string, List<Move>>
+        Book = new Dictionary<List<Move>, List<Move>>
         {
-            { "RNEAKAENR/9/1C5C1/P1P1P1P1P/9/9/p1p1p1p1p/1c5c1/9/rneakaenr", new List<Move> { new Move(1, 2, 4, 2), new Move(7, 2, 4, 2), new Move(1, 0, 2, 2) } },
-            // Add more positions and moves as needed
+            { new List<Move> { new Move(1, 2, 4, 2), new Move(7, 2, 4, 2), new Move(1, 0, 2, 2) }, new List<Move> { new Move(1, 2, 4, 2), new Move(7, 2, 4, 2), new Move(1, 0, 2, 2) } },
+            
         };
     }
 
 
-    public Move GetRandomOpeningMove(string fen, GameColor turnColor)
+    public Move GetRandomOpeningMove(List<Move> boardState, GameColor turnColor)
     {   
         //just first move
-            int x = Random.Range(0, redBook[fen].Count);
-            return redBook[fen][x];
-        
+        int x = Random.Range(0, Book[boardState].Count);
+        return Book[boardState][x];
     } 
 }

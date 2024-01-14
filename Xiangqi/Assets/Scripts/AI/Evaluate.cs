@@ -82,11 +82,11 @@ public class Evaluate : MonoBehaviour
                         //if attacked piece is player king
                         if(pieceType == PieceType.King)
                         {
-                            Piece pieceAttackingKing = BitBoard.PieceOfAttackingPieceOnPos(board, bitPiecePos, turnColor.OppositeColor());
+                            Piece pieceAttackingKing = BitBoard.PieceThatAttackingPieceOnPos(board, bitPiecePos, turnColor.OppositeColor());
                             //check if checkmate and if it is down the evaluate to the max
                             if(!board.PlayerHaveMoves(turnColor))
                             {
-                                checkBonus = -10000;
+                                return -10000;
                             }
                             //if not check mate check if the piece that attacking the king is on safe intersection if yes add king to the max attaking piece value if not keep going
                             else if((BitBoard.PosToBitInteger(pieceAttackingKing.GetPos()) & BitBoard.AttackingSquaresBitboard(board, turnColor)) == 0)
@@ -124,25 +124,29 @@ public class Evaluate : MonoBehaviour
                     //if this piece is under attack by the player pieces
                     if((bitPiecePos & BitBoard.AttackingSquaresBitboard(board, turnColor)) != 0)
                     {
-                        //if attacked piece is enemy king
-                        if(pieceType == PieceType.King)
+                        //save the piece that attacking the enemy piece
+                        Piece pieceAttacking = BitBoard.PieceThatAttackingPieceOnPos(board, bitPiecePos, turnColor);
+
+                        //check if the piece that attacking the enemy piece is on safe intersection
+                        if((BitBoard.PosToBitInteger(pieceAttacking.GetPos()) & BitBoard.AttackingSquaresBitboard(board, turnColor.OppositeColor())) == 0)
                         {
-                            Piece pieceAttackingKing = BitBoard.PieceOfAttackingPieceOnPos(board, bitPiecePos, turnColor);
-                            //check if checkmate and if it is up the evaluate to the max
-                            if(!board.PlayerHaveMoves(turnColor.OppositeColor()))
+                            //if attacked piece is enemy king
+                            if(pieceType == PieceType.King)
                             {
-                                checkBonus = 10000;
-                            }
-                            //check if the piece that attacking the king is on safe intersection if yes add king to the max attaking piece value if not keep going
-                            if((BitBoard.PosToBitInteger(pieceAttackingKing.GetPos()) & BitBoard.AttackingSquaresBitboard(board, turnColor.OppositeColor())) == 0)
+                                //check if checkmate and if it is up the evaluate to the max
+                                if(!board.PlayerHaveMoves(turnColor.OppositeColor()))
+                                {
+                                    return 10000;
+                                }
                                 checkBonus += 100;
-                        }
-                        //if the piece is undefended by the enemy pieces
-                        else if((bitPiecePos & BitBoard.AttackingSquaresBitboard(board, turnColor.OppositeColor())) == 0)
-                        {
-                            if(maxAttackingPieceValue < pieceValueFromType[pieceType])
+                            }
+                            //if the piece is undefended by the enemy pieces
+                            else if((bitPiecePos & BitBoard.AttackingSquaresBitboard(board, turnColor.OppositeColor())) == 0)
                             {
-                                maxAttackingPieceValue = pieceValueFromType[pieceType];
+                                if(maxAttackingPieceValue < pieceValueFromType[pieceType])
+                                {
+                                    maxAttackingPieceValue = pieceValueFromType[pieceType];
+                                }
                             }
                         }
                     }
@@ -161,7 +165,7 @@ public class Evaluate : MonoBehaviour
 
         
         piecesValueCounterPlayer -= maxUnDefendedPieceValue;
-        piecesValueCounterEnemy -= (int)(maxAttackingPieceValue); 
+        piecesValueCounterEnemy -= (int)(maxAttackingPieceValue * 0.5f); 
         
         //add check for the conclusion
         double checkWeight = 1.5f;
@@ -182,118 +186,5 @@ public class Evaluate : MonoBehaviour
         else
             return eval * (-1);
     }
-
-
-    /*
-    //evaluate the pieces differences and unprotected pieces on the board between the two colors
-    private static float EvaluatePieces(Board board, GameColor turnColor)
-    {
-        int piecesValueCounterRed = PiecesValueCounterByColor(board, GameColor.Red);
-        int piecesValueCounterBlack = PiecesValueCounterByColor(board, GameColor.Black);
-
-        int maxUnprotectedPieceOfEnemy = UnProtectedPieceMax(board, turnColor);
-
-        if(turnColor == GameColor.Red)
-        {
-            piecesValueCounterRed -= maxUnprotectedPieceOfEnemy;
-        }
-        else
-        {
-            piecesValueCounterBlack -= maxUnprotectedPieceOfEnemy;
-        }
-
-        return (float)((float)piecesValueCounterRed/piecesValueCounterBlack-1);
-    }
-
-    private static float EvaluatePiecesIntersections(Board board)
-    {
-        float redPiecesIntersectionsSum = PieceIntersectionsValuesSum(board, GameColor.Red);
-        float blackPiecesIntersectionsSum = PieceIntersectionsValuesSum(board, GameColor.Black);
-        return (float)((float)redPiecesIntersectionsSum/blackPiecesIntersectionsSum - 1);
-    }
-
-    //
-    private static int PiecesValueCounterByColor(Board board, GameColor piecesColor)
-    {
-        int piecesCounter = 0;
-        
-        for(int i = 1; i < 8; i++)
-        {
-            foreach(Piece piece in board.GetPiecesInType((PieceType)i))
-            {
-                if(piece.GetPieceColor() == piecesColor)
-                {
-                    piecesCounter += pieceValueFromType[piece.GetPieceType()];
-                }
-            }
-        }
-        
-        return piecesCounter;
-    }
-
-    
-    //return the max value unprotected piece
-    private static int UnProtectedPieceMax(Board board, GameColor piecesColor)
-    {
-        BigInteger colorBitboard = BitBoard.BoardToBitboardByColor(board, piecesColor); 
-        int unDefendedPiecesValueMax = 0;
-
-        for(int i = 1; i < 8; i++)
-        {
-            foreach(Piece currentPiece in board.GetPiecesInType((PieceType)i))
-            {
-                BigInteger attackedPieces;
-                
-                if(currentPiece.GetPieceColor() == piecesColor.OppositeColor() && currentPiece.GetPieceType() != PieceType.King){
-                    //the board with just the player color & the bitboard of attacking squares by the enemy
-                    attackedPieces = colorBitboard & currentPiece.GetPieceBitboardMove(board);
-                    //if its equal to 0 so there is no pieces that under attack else check if its defended
-                    if(attackedPieces  != 0)
-                    {
-                        //get the squares that defended
-                        BigInteger piecesDefending = BitBoard.AttackingSquaresBitboard(board, piecesColor);
-                        //check if the pieces under attack and the defended squares are the same
-                        if((piecesDefending&attackedPieces) == 0 )
-                        {
-                            if(unDefendedPiecesValueMax < pieceValueFromType[currentPiece.GetPieceType()])
-                                unDefendedPiecesValueMax = pieceValueFromType[currentPiece.GetPieceType()];
-                        }
-                        else 
-                        {
-                            if(unDefendedPiecesValueMax < pieceValueFromType[currentPiece.GetPieceType()])
-                                continue;
-                                //i want to check if the protectinc 
-                        }
-                    }
-                }
-            }
-        }
-
-        return unDefendedPiecesValueMax;
-    }
-
-    //return the sum of the piece intersections evaluate values
-    private static float PieceIntersectionsValuesSum(Board board, GameColor gameColor)
-    {
-        // Implement piece-square tables evaluation here
-        float pstScore = 0;
-        //scan without kings
-        for(int i = 2; i < 8; i++)
-            {
-                foreach(Piece piece in board.GetPiecesInType((PieceType)i))
-                {
-                    //if the piece is the color of the function add the piece position value
-                    if(piece.GetPieceColor() == gameColor)
-                    {
-                        //if the player is on the down side i send the regular x and y if not i send its alternate
-                        if(GameObject.FindWithTag("GameManager").GetComponent<GameManager>().IsColorOnDownSide(gameColor))
-                            pstScore += EvaluatePieceIntersectionsTables.GetPieceSquareValue(piece.GetPieceType(), piece.GetX(), piece.GetY());
-                        else
-                            pstScore += EvaluatePieceIntersectionsTables.GetPieceSquareValue(piece.GetPieceType(), 8 - piece.GetX(), 9 -piece.GetY());
-                    }
-                }
-            }
-
-        return pstScore;
-    }*/
+ 
 }
