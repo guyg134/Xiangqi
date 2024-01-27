@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
 using UnityEngine;
-using Vector2 = UnityEngine.Vector2;
 
 public class Piece : MonoBehaviour
 {
@@ -32,9 +31,9 @@ public class Piece : MonoBehaviour
         return y;
     }
 
-    public Vector2 GetPos()
+    public Position GetPos()
     {
-        return new Vector2(x, y);
+        return new Position(x, y);
     }
 
     public void SetPos(int x, int y)
@@ -53,10 +52,10 @@ public class Piece : MonoBehaviour
         return pieceMovement.GetBitboardMoves(x, y, board);
     }
 
-    public void MovePiece(Vector2 newPos)
+    public void MovePiece(Position newPos)
     {
         //create new move with null on the eaten piece that will be add on the gameboard
-        Move move = new Move(x, y, (int)newPos.x, (int)newPos.y, this);
+        Move move = new Move(x, y, newPos.x, newPos.y, this);
         //update the piece in board
         GameObject.FindGameObjectWithTag("Board").GetComponent<GameBoard>().UpdatePieceInBoard(move);
     }
@@ -74,7 +73,7 @@ public class Piece : MonoBehaviour
         gameBoard.CreatePieceDots(gameObject, GetValidMoves(gameBoard.GetBoard()));
     }
 
-    public List<Vector2> GetValidMoves(Board board)
+    public List<Position> GetValidMoves(Board board)
     {
         BigInteger moves = GetPieceBitboardMove(board);
         return GameObject.FindGameObjectWithTag("Board").GetComponent<GameBoard>().GetValidMoves(moves, this, x, y);

@@ -1,23 +1,18 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using TMPro;
+
 using UnityEngine;
 using Random=UnityEngine.Random;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
     [SerializeField] private GameBoard gameBoard;
     private UIManager uIManager;
-    private  PlayerScript[] players = new PlayerScript[2];
+    private  Player[] players = new Player[2];
     
 
     //save the color of the player
     private int turnInt;
     private int movesCounter;
-    [SerializeField] private GameObject KingCirclePrefab;
     
 
     // Start is called before the first frame update
@@ -86,10 +81,10 @@ public class GameManager : MonoBehaviour
 
     public GameColor GetTurnColor()
     {
-        return players[turnInt].GetPlayerColor();
+        return players[turnInt].playerColor;
     }
 
-    public PlayerScript GetTurnPlayer()
+    public Player GetTurnPlayer()
     {
         return players[turnInt];
     }
@@ -107,8 +102,8 @@ public class GameManager : MonoBehaviour
         if(Time.timeScale != 0)
             IsAiTurn();
 
-        float eval = (float)Evaluate.EvaluateFunc(gameBoard.GetBoard(), GetTurnColor())/10000;
-        print(eval);
+        float eval = (float)Evaluate.EvaluatePosition(gameBoard.GetBoard(), GetTurnPlayer())/10000;
+
         uIManager.ChangeEvalBar(eval);
         uIManager.ChangeMovesNumberText(++movesCounter);
     }
@@ -125,8 +120,9 @@ public class GameManager : MonoBehaviour
 
     public bool IsColorOnDownSide(GameColor gameColor)
     {
-        PlayerScript currentPlayer = GetTurnPlayer();
-        return (!currentPlayer.PlayOnDownSide() && gameColor != currentPlayer.GetPlayerColor()) || (currentPlayer.PlayOnDownSide() && gameColor == currentPlayer.GetPlayerColor());
+        Player currentPlayer = GetTurnPlayer();
+        //player[0] is the player thats plays on the down side
+        return players[0].playerColor == gameColor;
     }
     public void CheckMate()
     {

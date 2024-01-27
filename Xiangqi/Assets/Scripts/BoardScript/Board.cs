@@ -1,9 +1,10 @@
+
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
-using UnityEngine;
+using UnityEngine.Android;
+
 
 public class Board
 {
@@ -100,12 +101,12 @@ public class Board
     public void MovePieceOnBoard(Move move)
     {
 
-        int endX = move.getEndX();
-        int endY = move.getEndY();
+        int endX = move.EndX;
+        int endY = move.EndY;
 
         //find the pieces
-        Piece movingPiece = move.GetPiece();
-        Piece eatenPiece = move.EatenPiece();
+        Piece movingPiece = move.MovingPiece;
+        Piece eatenPiece = move.EatenPiece;
         
         //moving the piece
         movingPiece.SetPos(endX, endY);
@@ -122,12 +123,12 @@ public class Board
     {
         Move lastMove = movesSave.Pop();
 
-        int x = lastMove.getStartX();
-        int y = lastMove.getStartY();
+        int x = lastMove.StartX;
+        int y = lastMove.StartY;
 
         //find the piece
-        Piece movingPiece = lastMove.GetPiece();
-        Piece eatenPiece = lastMove.EatenPiece();
+        Piece movingPiece = lastMove.MovingPiece;
+        Piece eatenPiece = lastMove.EatenPiece;
         //moving the piece
         movingPiece.SetPos(x, y);
 
@@ -136,6 +137,29 @@ public class Board
             AddPiece(eatenPiece);
         }
 
+    }
+
+    public List<string> GetMovesList(bool isRedPlayerDown)
+    {
+        List<string> movesList = new List<string>();
+
+        // Convert the Stack to a List for reverse iteration
+        Move[] movesArray = movesSave.ToArray();
+
+        // Iterate through movesReversed
+        for (int i = movesArray.Length - 1; i >= 0; i--)
+        {
+            Move move = new Move(movesArray[i]);
+
+            if (!isRedPlayerDown)
+                move.ChangeSide();
+
+            // Add the move name to movesList
+            movesList.Add(move.Name());
+        }
+
+        return movesList;
+        
     }
 
     public Dictionary<PieceType, List<Piece>> CloneBoard(Dictionary<PieceType, List<Piece>> cloneBoard)

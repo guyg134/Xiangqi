@@ -1,37 +1,30 @@
-using System.Collections;
-using System.Collections.Generic;
+
 using UnityEngine;
 
-public class MoveInput : InputScript
+public class MoveInput : MonoBehaviour
 {
 
-    private int position;
-    private Vector2 pos;
+    //private int position;
+    private Position pos;
+    private Piece piece;
 
-    void Start()
-    {
-    
-    }
-
-    public void createDot(int position)
-    {
-        this.position = position;
-        
-    }
-
-    public void SetPos(Vector2 pos)
+    public void SetPos(Position pos)
     {
         this.pos = pos;
         piece = transform.parent.gameObject.GetComponent<Piece>();
     }
 
-    protected override void click()
+    protected void Click()
     {
         piece.MovePiece(pos);
     }
 
-    protected override void setPiece()
-    {
-        throw new System.NotImplementedException();
+    void OnMouseOver()
+    {   
+        if(Input.GetMouseButtonDown(0))
+        {
+            Click();
+        }
     }
+
 }

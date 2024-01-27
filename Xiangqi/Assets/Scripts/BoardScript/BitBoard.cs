@@ -1,9 +1,6 @@
-using System.Collections;
 using System.Collections.Generic;
-using System.Data;
 using System.Numerics;
 using UnityEngine;
-using Vector2 = UnityEngine.Vector2;
 
 public class BitBoard : MonoBehaviour
 {
@@ -35,12 +32,12 @@ public class BitBoard : MonoBehaviour
         //if its red piece update red Bitboard
         if(color == GameColor.Red){
             //remove the current position of the piece in the board
-            BigInteger bitPosition = move.getStartY() * 9 + move.getStartX();
+            BigInteger bitPosition = move.StartY * 9 + move.StartX;
             BigInteger bitValue = 1;
             redBitboard ^= bitValue << (int)bitPosition;
 
             //update the new position in the board
-            bitPosition = move.getEndY() * 9 + move.getEndX();
+            bitPosition = move.EndY * 9 + move.EndX;
     
             //check if there is black piece and remove it from blackbitboard
             if((blackBitboard & bitValue << (int)bitPosition) != 0)
@@ -51,12 +48,12 @@ public class BitBoard : MonoBehaviour
         //if its black update black Bitboard
         else{
             //remove the current position of the piece in the board
-            BigInteger bitPosition = move.getStartY() * 9 + move.getStartX();
+            BigInteger bitPosition = move.StartY * 9 + move.StartX;
             BigInteger bitValue = 1;
             blackBitboard ^= bitValue << (int)bitPosition;
 
             //update the new position in the board
-            bitPosition = move.getEndY() * 9 + move.getEndX();
+            bitPosition = move.EndY * 9 + move.EndX;
             
             //check if there is black piece and remove it from blackbitboard
             if((redBitboard & bitValue << (int)bitPosition) != 0)
@@ -119,8 +116,10 @@ public class BitBoard : MonoBehaviour
     }
 
     //return the piece that attacking the piece on the specific pos
-    public static Piece PieceThatAttackingPieceOnPos(Board board, BigInteger pos, GameColor attackingColor)
+    public static List<Piece> PiecesThatAttackingPos(Board board, BigInteger pos, GameColor attackingColor)
     {
+        List<Piece> pieces = new List<Piece>();
+        //check all the pieces that can attack the pos
         for(int i = 1; i < 8; i++)
         {
             foreach(Piece piece in board.GetPiecesInType((PieceType)i))
@@ -128,12 +127,12 @@ public class BitBoard : MonoBehaviour
                 if(piece.GetPieceColor() == attackingColor)
                 {
                     if((pos & piece.GetPieceBitboardMove(board)) != 0)
-                        return piece;
+                        pieces.Add(piece);
                 }
             }
         }
-                
-        return null;
+        
+        return pieces;
     }
 
     public BigInteger PrintCurrentBitBoard()
@@ -196,15 +195,15 @@ public class BitBoard : MonoBehaviour
 
     }
 
-    public List<Vector2> BitboardToVector2s(BigInteger bitboard)
+    public List<Position> BitboardToPosition(BigInteger bitboard)
     {
         int totalBits = 90; // Assuming a 9x10 board
-        List<Vector2> positions = new List<Vector2>();
+        List<Position> positions = new List<Position>();
 
         for (int i = 0; i < totalBits; i++)
         {
             if((bitboard & (BigInteger.One << i)) != 0)
-                positions.Add(new Vector2(i%9, i/9));
+                positions.Add(new Position(i%9, i/9));
         }
 
         return positions;
@@ -223,10 +222,10 @@ public class BitBoard : MonoBehaviour
         return bitPos;
     }
 
-    public static BigInteger PosToBitInteger(Vector2 pos)
+    public static BigInteger PosToBitInteger(Position pos)
     {
         BigInteger bitPos = 0;
-        BigInteger bitPosition = (int)pos.y * 9 + (int)pos.x;
+        BigInteger bitPosition = pos.y * 9 + pos.x;
         BigInteger value = 1;
         
         

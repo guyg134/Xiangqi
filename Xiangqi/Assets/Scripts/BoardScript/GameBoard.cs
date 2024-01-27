@@ -1,12 +1,7 @@
-using System;
-using System.Collections;
+
 using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
 using System.Numerics;
 using UnityEngine;
-using Quaternion = UnityEngine.Quaternion;
-using Vector2 = UnityEngine.Vector2;
 
 public class GameBoard : MonoBehaviour
 {
@@ -95,11 +90,11 @@ public class GameBoard : MonoBehaviour
         }
     }
 
-    public void CreatePieceDots(GameObject piece, List<Vector2> validMovews)
+    public void CreatePieceDots(GameObject piece, List<Position> validMovews)
     {
         uIManager.DeleteDots();
         
-        foreach(Vector2 pos in validMovews)
+        foreach(Position pos in validMovews)
         {
             uIManager.DrawDot(piece, pos);
         }
@@ -110,20 +105,20 @@ public class GameBoard : MonoBehaviour
         return board;
     }
 
-    public List<Vector2> GetValidMoves(BigInteger dotsBitboard, Piece piece, int startX, int startY)
+    public List<Position> GetValidMoves(BigInteger dotsBitboard, Piece piece, int startX, int startY)
     {
         //delete all the positions that have piece with the same color of this piece
         dotsBitboard = bitBoard.BitboardMovesWithoutDefence(dotsBitboard, piece.GetPieceColor());
 
-        //change the bitboard moves to vector2 positions
-        List<Vector2> dotsPos = bitBoard.BitboardToVector2s(dotsBitboard);
+        //change the bitboard moves to position positions
+        List<Position> dotsPos = bitBoard.BitboardToPosition(dotsBitboard);
 
         //save the valids moves
-        List<Vector2> validMoves = new List<Vector2>();
+        List<Position> validMoves = new List<Position>();
         //create dots for every position
-        foreach(Vector2 dotPos in dotsPos)
+        foreach(Position dotPos in dotsPos)
         {
-            Move move = new Move(startX, startY, (int)dotPos.x, (int)dotPos.y, piece, board.FindPiece((int)dotPos.x, (int)dotPos.y));
+            Move move = new Move(startX, startY, dotPos.x, dotPos.y, piece, board.FindPiece(dotPos.x, dotPos.y));
             bool isCheckAfterThisMove = IsKingUnderAttackAfterMove(move, piece.GetPieceColor().OppositeColor());
             //if there is no check after the move add the move to the valids moves list
             if(!isCheckAfterThisMove)
@@ -155,20 +150,20 @@ public class GameBoard : MonoBehaviour
     {
         uIManager.DeleteDots();
         //add the eaten piece to the move
-        move.SetEatenPiece(board.FindPiece(move.getEndX(), move.getEndY()));
+        move.EatenPiece = board.FindPiece(move.EndX, move.EndY);
 
         //check if there is piece and take the piece if true
-        if(move.EatenPiece() != null)
-            uIManager.RemovePiece(move.EatenPiece());
+        if(move.EatenPiece != null)
+            uIManager.RemovePiece(move.EatenPiece);
 
         //update the piece on the board
         board.MovePieceOnBoard(move);
 
         //update piece on screen
-        uIManager.MovePieceInScreen(move.GetPiece(), move);
+        uIManager.MovePieceInScreen(move.MovingPiece, move);
 
         //update the piece in the bitboard
-        bitBoard.UpdateBitBoard(move, move.GetPiece().GetPieceColor());
+        bitBoard.UpdateBitBoard(move, move.MovingPiece.GetPieceColor());
 
         //check if there is check on the king now
         CheckGameState();
@@ -183,7 +178,7 @@ public class GameBoard : MonoBehaviour
         if(bitBoard.IsCheck(board, turnColor))
         {
             //find the enemy king and draw the check circle
-            Vector2 enemyKingPos = board.FindKing(gameManager.GetTurnColor().OppositeColor()).GetPos();
+            Position enemyKingPos = board.FindKing(gameManager.GetTurnColor().OppositeColor()).GetPos();
             uIManager.CheckCircleUI((int)enemyKingPos.x, (int)enemyKingPos.y, true);
 
             //if enemy in check and dont have moves is checkmate

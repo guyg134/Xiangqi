@@ -1,8 +1,7 @@
-using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using Image = UnityEngine.UI.Image;
 
 public class UIManager : MonoBehaviour
 {
@@ -13,20 +12,25 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject chessPiecePrefab;
     [SerializeField] private GameObject moveDotPrefab;
 
+    //Game UI
+    [SerializeField] private TextMeshProUGUI movesNumberText;
+    [SerializeField] private TextMeshProUGUI turnColorText;
+    [SerializeField] private Color redColor;
+    [SerializeField] private Color blackColor;
+    [SerializeField] private ScrollRect movesScroll;
+    [SerializeField] private GameObject moveNameTextPrefab;
 
-    [SerializeField] public TextMeshProUGUI movesNumberText;
-    [SerializeField] public TextMeshProUGUI turnColorText;
-    [SerializeField] public Color redColor;
-    [SerializeField] public Color blackColor;
-
+    //Eval UI
     [SerializeField] private Image evalBar;
     [SerializeField] private TextMeshProUGUI evalText;
 
+    //EndGame texts and UI
     [SerializeField] private GameObject winnerText;
     [SerializeField] private GameObject drawText;
     [SerializeField] private GameObject winnerColorText;
     [SerializeField] private GameObject checkCircleUI;
 
+    //Debug UI
     [SerializeField] public TextMeshProUGUI bitboardText;
      
 
@@ -62,7 +66,17 @@ public class UIManager : MonoBehaviour
 
     public void MovePieceInScreen(Piece piece, Move move)
     {
-        piece.gameObject.transform.position = PositionToVector2(move.getEndX(), move.getEndY());
+        piece.gameObject.transform.position = PositionToVector2(move.EndX, move.EndY);
+        AddMoveToMovesGrid(move.Name());
+    }
+
+    //add new move to the moves grid in the game and set the 
+    private void AddMoveToMovesGrid(string moveName)
+    {
+        Transform content = movesScroll.gameObject.transform.GetChild(0).transform.GetChild(0).transform;
+        GameObject newMoveText = Instantiate(moveNameTextPrefab);
+        newMoveText.transform.SetParent(content, true);
+        newMoveText.GetComponent<TextMeshProUGUI>().text = moveName;
     }
 
     public void RemovePiece(Piece piece)
@@ -80,10 +94,10 @@ public class UIManager : MonoBehaviour
         movesNumberText.text = moves.ToString();
     }
 
-    public void DrawDot(GameObject piece, Vector2 pos)
+    public void DrawDot(GameObject piece, Position pos)
     {
         //draw dot in the given pos
-        GameObject dotObject = Instantiate(moveDotPrefab, PositionToVector2((int)pos.x, (int)pos.y), Quaternion.identity);
+        GameObject dotObject = Instantiate(moveDotPrefab, PositionToVector2(pos.x, pos.y), Quaternion.identity);
         dotObject.transform.parent = piece.transform;
         dotObject.GetComponent<MoveInput>().SetPos(pos);
     }

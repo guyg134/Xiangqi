@@ -1,36 +1,59 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Numerics;
-using Unity.Collections;
-using Unity.Mathematics;
+using UnityEditor.VersionControl;
 using UnityEngine;
 using Random = UnityEngine.Random;
-using Vector2 = UnityEngine.Vector2;
 
 public class SearchMove : MonoBehaviour
 {
-    GameBoard gameBoard;
-    GameColor playerColor;
-    OpeningBook openingBook;
+    [SerializeField] private GameBoard gameBoard;
+    [SerializeField] private GameManager gameManager;
+    Player Player;
+    private static OpeningBook openingBook;
 
-    public float timeForMove = 0;
+    [SerializeField] private float timeForMove = 0;
+    [SerializeField] private bool doRandomMove = false;
 
-    public void SetSearchMove(GameColor playerColor)
+
+    private bool HaveOpening;
+
+    public void SetSearchMove(Player player)
     {
-        gameBoard = GameObject.FindWithTag("Board").GetComponent<GameBoard>();
-        this.playerColor = playerColor;
+        this.Player = player;
         openingBook = new OpeningBook();
-
+        HaveOpening = true;
     }
 
     public void DoTurn()
     {
-        //DoRandomMove();
-        int moves = GameObject.FindWithTag("GameManager").GetComponent<GameManager>().GetMovesCounter();
-        GenerateMove();
+        int movesPlayed = gameManager.GetMovesCounter();
+
+        Move move = GetMove();
+        //print("x: " + move.StartX + " y: " + move.StartY + " x: " + move.EndX + " y: " + move.EndY);
+        StartCoroutine(DoMove(move.MovingPiece, move.PositionEnd));
     }
-    private void DoRandomMove()
+
+    public Move GetMove()
+    {
+        //do random move
+        if(doRandomMove)
+            return DoRandomMove();
+
+        Move openingMove = OpeningMove();
+            
+        //if there is opening move, do it
+        if(openingMove != null)
+        {
+            print("move is from opening");
+            return openingMove;
+        }
+        //if there is no opening move, generate move
+        print("move is generated");
+        HaveOpening = false;
+        return GenerateMove();
+    }
+
+    private Move DoRandomMove()
     {
         Piece piece;
         int x;
@@ -41,18 +64,19 @@ public class SearchMove : MonoBehaviour
             y = Random.Range(0, 10);
             
             piece = gameBoard.GetBoard().FindPiece(x, y);
-        }while(!piece || (int)piece.GetPieceColor() != (int)playerColor || piece.GetValidMoves(gameBoard.GetBoard()).Count == 0);
+        }while(!piece || piece.GetPieceColor() != Player.playerColor || piece.GetValidMoves(gameBoard.GetBoard()).Count == 0);
         //piece.GetDots();
 
-        List<Vector2> validMoves = piece.GetValidMoves(gameBoard.GetBoard());
+        List<Position> validMoves = piece.GetValidMoves(gameBoard.GetBoard());
         int i = Random.Range(0, validMoves.Count);
 
-        StartCoroutine(DoMove(piece, validMoves[i]));
+        return new Move(x, y, validMoves[i].x, validMoves[i].y, piece);
     }  
     
-    private void GenerateMove()
+    private Move GenerateMove()
     {
         double bestEval;
+        GameColor playerColor = Player.playerColor;
         
         if(playerColor == GameColor.Red)
             bestEval   = -1000000000;       
@@ -71,7 +95,7 @@ public class SearchMove : MonoBehaviour
 
                 
 
-                foreach(Vector2 pos in piece.GetValidMoves(board))
+                foreach(Position pos in piece.GetValidMoves(board))
                 {
                     //create clone to save the board before
                     Board boardAfterMove = new Board(board);
@@ -79,7 +103,7 @@ public class SearchMove : MonoBehaviour
                     //do the move
                     boardAfterMove.MovePieceOnBoard(move);
                     
-                    double evalMove = Evaluate.EvaluateFunc(boardAfterMove, playerColor);
+                    double evalMove = Evaluate.EvaluatePosition(boardAfterMove, Player);
                     
                     if(playerColor == GameColor.Red)
                     {
@@ -103,15 +127,33 @@ public class SearchMove : MonoBehaviour
             } 
         }
         
-        StartCoroutine(DoMove(bestMove.GetPiece(), new Vector2(bestMove.getEndX(), bestMove.getEndY())));
+        return bestMove;
     } 
 
-    /*public Move GetRandomOpeningMove(Board board)
+    private Move OpeningMove()
     {
+        //get the moves in the game from the red down perspective
+        List<string> movesInGame = gameBoard.GetBoard().GetMovesList(Player.playOnDownSide == (Player.playerColor == GameColor.Red));
+        string moveString = openingBook.GetRandomOpeningMove(movesInGame);
 
-    }*/
+        //if there is no opening move, return null
+        if(!HaveOpening || moveString == null)
+        {
+            HaveOpening = false;
+            return null;
+        }
 
-    IEnumerator DoMove(Piece piece, Vector2 pos)
+        Move move = Move.NameToMove(moveString);
+        //if the player is red so the bot is on top, the move is from the other side
+        if(Player.playOnDownSide != (Player.playerColor == GameColor.Red))
+            move.ChangeSide();
+        
+        move.MovingPiece = gameBoard.GetBoard().FindPiece(move.StartX, move.StartY);
+
+        return move;
+    }
+
+    IEnumerator DoMove(Piece piece, Position pos)
     {
         yield return new WaitForSeconds(timeForMove);
 
