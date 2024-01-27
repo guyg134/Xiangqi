@@ -5,6 +5,8 @@ using UnityEngine;
 
 public class Piece : MonoBehaviour
 {
+    private GameBoard gameBoard;
+    
     private PieceType pieceType;
     private GameColor pieceColor;
     private int x;
@@ -19,6 +21,7 @@ public class Piece : MonoBehaviour
         this.x = x;
         this.y = y;
         
+        gameBoard = FindObjectOfType<GameBoard>();
     }
 
     public int GetX()
@@ -57,7 +60,7 @@ public class Piece : MonoBehaviour
         //create new move with null on the eaten piece that will be add on the gameboard
         Move move = new Move(x, y, newPos.x, newPos.y, this);
         //update the piece in board
-        GameObject.FindGameObjectWithTag("Board").GetComponent<GameBoard>().UpdatePieceInBoard(move);
+        gameBoard.UpdatePieceInBoard(move);
     }
 
     public GameColor GetPieceColor()
@@ -69,14 +72,13 @@ public class Piece : MonoBehaviour
 
     public void GetDots()
     {
-        GameBoard gameBoard = GameObject.FindGameObjectWithTag("Board").GetComponent<GameBoard>();
         gameBoard.CreatePieceDots(gameObject, GetValidMoves(gameBoard.GetBoard()));
     }
 
     public List<Position> GetValidMoves(Board board)
     {
         BigInteger moves = GetPieceBitboardMove(board);
-        return GameObject.FindGameObjectWithTag("Board").GetComponent<GameBoard>().GetValidMoves(moves, this, x, y);
+        return board.GetValidMoves(moves, this);
     }
 
 }

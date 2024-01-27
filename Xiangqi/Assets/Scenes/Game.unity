@@ -5339,7 +5339,6 @@ GameObject:
   - component: {fileID: 194607111}
   - component: {fileID: 194607110}
   - component: {fileID: 194607112}
-  - component: {fileID: 194607113}
   m_Layer: 0
   m_Name: GameBoard
   m_TagString: Board
@@ -5424,18 +5423,6 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 375849e7033b2754885500e1add04f0f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &194607113
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 194607109}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9794a264cea45644d820197724a9d6c8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &199337839
@@ -6909,7 +6896,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gameBoard: {fileID: 194607112}
   gameManager: {fileID: 2139741961}
-  timeForMove: 1
+  timeForMove: 0
   doRandomMove: 0
 --- !u!4 &960103027
 Transform:
@@ -7117,7 +7104,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gameBoard: {fileID: 194607112}
   gameManager: {fileID: 2139741961}
-  timeForMove: 1
+  timeForMove: 0
   doRandomMove: 0
 --- !u!4 &1262958405
 Transform:
@@ -12502,8 +12489,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1069242144}
   m_HandleRect: {fileID: 1069242143}
   m_Direction: 0
-  m_Value: -0.0000037261989
-  m_Size: 0.95985293
+  m_Value: -0.000009315462
+  m_Size: 0.9598528
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:

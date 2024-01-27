@@ -13,6 +13,20 @@ public class EvaluatePieceIntersectionsTables
         pieceSquareTable = new Dictionary<PieceType, float[,]>
          {
             // Initialize square tables for each piece type
+            [PieceType.King] = new float[,]
+            {
+                { 0,  0,  0,  0,  0,  0,  0,  0,  0},
+                { 0,  0,  0,  0,  0,  0,  0,  0,  0},
+                { 0,  0,  0,  0,  0,  0,  0,  0,  0},
+                { 0,  0,  0,  0,  0,  0,  0,  0,  0},
+                { 0,  0,  0,  0,  0,  0,  0,  0,  0},
+                { 0,  0,  0,  0,  0,  0,  0,  0,  0},
+                { 0,  0,  0,  0,  0,  0,  0,  0,  0},
+                { 0,  0,  0,  1,  1,  1,  0,  0,  0},
+                { 0,  0,  0,  2,  2,  2,  0,  0,  0},
+                { 0,  0,  0,  4,  8,  4,  0,  0,  0}
+
+            },
             [PieceType.Soldier] = new float[,]
             {
                 {  0, 3, 6, 9, 12, 9, 6, 3, 0},
@@ -47,7 +61,7 @@ public class EvaluatePieceIntersectionsTables
                 { 0,  0,  0,  0,  0,  0,  0,  0,  0},
                 { 0,  0,  0,  0,  0,  0,  0,  0,  0},
                 { 0,  0,  0,  0,  0,  0,  0,  0,  0},
-                { 0,  0,  10,  0,  0,  0,  10,  0,  0},
+                { 0,  0,  6,  0,  0,  0,  6,  0,  0},
                 { 0,  0,  0,  0,  0,  0,  0,  0,  0},
                 { 2,  0,  0,  0,  14,  0,  0,  0,  2},
                 { 0,  0,  0,  0,  0,  0,  0,  0,  0},
@@ -76,9 +90,9 @@ public class EvaluatePieceIntersectionsTables
                 { 0,  0,  0,  0,  0,  0,  0,  0,  0},
                 { 0,  0,  0,  0,  0,  0,  0,  0,  0},
                 { 0,  0,  0,  0,  0,  0,  0,  0,  0},
-                { 0,  0,  0,  1,  0,  1,  0,  0,  0},
-                { 0,  0,  0,  0,  2,  0,  0,  0,  0},
-                { 0,  0,  0,  3,  0,  3,  0,  0,  0}
+                { 0,  0,  0,  2,  0,  2,  0,  0,  0},
+                { 0,  0,  0,  0,  6,  0,  0,  0,  0},
+                { 0,  0,  0,  4,  0,  4,  0,  0,  0}
 
 
             },
@@ -100,9 +114,6 @@ public class EvaluatePieceIntersectionsTables
 
     public static float GetPieceSquareValue(PieceType pieceType, int x, int y)
     {
-        if(pieceType != PieceType.King)
-        // Retrieve PST value for a specific piece type on a given square
-            return pieceSquareTable[pieceType][9 - y, x];
-        return 0;
+        return pieceSquareTable[pieceType][9 - y, x];
     }
 }

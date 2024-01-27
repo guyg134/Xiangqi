@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -17,10 +18,13 @@ public class Evaluate
     //(18700, 400, 500, 600, 800, 600, 300)
 
     private const double checkWeight = 1.5f; 
-    private const double pieceValueDiffWeight = 1; 
+    private const double pieceValueDiffWeight = 2; 
     private const double playerIntersectionWeight = 0.25f; 
     private const double enemyIntersectionWeight = 0.25f; 
-    private const double maxAttackingPieceValueWeight = 0.4f; 
+    private const double maxUndefendedPieceValueWeight = 1.2f; 
+    private const double maxAttackingPieceValueWeight = 0.2f; 
+
+    private const int checkMateValue = 10000;
 
     // Counters for the number of pieces
     private static int piecesCounterPlayer = 0;
@@ -28,7 +32,7 @@ public class Evaluate
     // Counters for the value of the pieces
     private static int piecesValueCounterPlayer = 0;
     private static int piecesValueCounterEnemy = 0;
-    // Max value of undefended piece and attacking piece
+    // Max value of undefended piece(or defended but the exchange not worth it, the value will be undefended piece value-attackingpiece value) and attacking piece
     private static int maxUnDefendedPieceValue = 0;
     private static int maxAttackingPieceValue = 0;
     // Save the check bonus for the player
@@ -95,6 +99,12 @@ public class Evaluate
                         // If the piece is enemy piece
                         else
                         {
+                            // Go through the enemy pieces moves that can attack king and check if there is checkmate, if yes return the checkmate value
+                            /*if(GameBoard.PieceCanAttackKing(piece.GetPieceType()) && CheckMateNextMove(board, piece))
+                            {
+                                return EvaluateNumberByColor(checkMateValue, turnColor);
+                            }*/
+
                             // call to update enemy variables
                             UpdateEnemyVariables( board, turnColor, piece, bitPiecePos, PlayerAttackingBitboard, EnemyAttackingBitboard);
                             UpdateEnemyPiecesIntersectionEvaluateSum(currentPlayer, piece);
@@ -122,7 +132,6 @@ public class Evaluate
                     // If the piece is king (cant happened to player but in the evaluation of the eval bar, because there is no move that player can do that put his king under attack)
                     if (piece.GetPieceType() == PieceType.King)
                     {
-                        Debug.Log("king under attack after this move");
                         UpdatePlayerKingVariables(board, bitPiecePos, turnColor, enemyPiecesAttackingMyPiece);
                     }
                     // If the piece is not king
@@ -133,8 +142,18 @@ public class Evaluate
                             UpdateMaxUnDefendedPieceValue(pieceValueFromType[piece.GetPieceType()]);
                         // If the piece is defended by the player pieces
                         else
-                            // update the max undefended piece value with the difference between the piece value and the least value attacking piece 
-                            UpdateMaxUnDefendedPieceValue(pieceValueFromType[piece.GetPieceType()] - pieceValueFromType[GetLeastPieceInList(enemyPiecesAttackingMyPiece).GetPieceType()]);
+                        {
+                            if(enemyPiecesAttackingMyPiece.Count > 1)
+                            {
+                                //if there is more than 1 enemy piece attacking the piece, update the max undefended piece value with the piece value because it doesn't matter the player piece defended 
+                                UpdateMaxUnDefendedPieceValue(pieceValueFromType[piece.GetPieceType()]);
+                            }
+                            else
+                            {
+                                // if just one enemy piece attacking my piece update the max undefended piece value with the difference between the piece value and the value attacking piece 
+                                UpdateMaxUnDefendedPieceValue(pieceValueFromType[piece.GetPieceType()] - pieceValueFromType[enemyPiecesAttackingMyPiece[0].GetPieceType()]);
+                            }
+                        }
                     }
                 }
             }
@@ -166,7 +185,7 @@ public class Evaluate
                         {
                             int pieceValue = pieceValueFromType[piece.GetPieceType()];
                             int maxAttackingPieceValue = pieceValueFromType[GetMostWorthPieceInList(playerPiecesAttackingEnemyPiece).GetPieceType()];
-                            // If the attacking piece is worth more than the piece
+                            // If the attacking piece is worth more than the enemy piece
                             UpdateMaxAttackingPieceValue(pieceValue - maxAttackingPieceValue);
                         }
                     }
@@ -180,7 +199,7 @@ public class Evaluate
                 // Check if checkmate and if it is down the evaluate to the max
                 if (!board.PlayerHaveMoves(turnColor))
                 {
-                    checkBonus -= 10000;
+                    checkBonus -= checkMateValue;
                 }
                 // If not check mate, check if the pieces that attacking the king is more than one if yes down the check bonus
                 else if(enemyPiecesAttackingKing.Count > 1)
@@ -200,7 +219,7 @@ public class Evaluate
                 // Check if checkmate and if it is up the evaluate to the max
                 if (!board.PlayerHaveMoves(turnColor.OppositeColor()))
                 {
-                    checkBonus += 10000;
+                    checkBonus += checkMateValue;
                 }
                 // If not check mate, check if the pieces that attacking the king is more than one if yes up the check bonus
                 else if(playerPiecesAttackingKing.Count > 1)
@@ -220,6 +239,11 @@ public class Evaluate
                 if (maxUnDefendedPieceValue < pieceValue)
                 {
                     maxUnDefendedPieceValue = pieceValue;
+                }
+                // If the piece value is negative set it to zero, because you dont want bonus for piece under attack even if the piece that attacking it is worth MORE
+                if(maxUnDefendedPieceValue < 0)
+                {
+                    maxUnDefendedPieceValue = 0;
                 }
             }
 
@@ -267,7 +291,7 @@ public class Evaluate
     {
         
         double eval = 0;
-        piecesValueCounterPlayer -= maxUnDefendedPieceValue;
+        piecesValueCounterPlayer -= (int)(maxUnDefendedPieceValue * maxUndefendedPieceValueWeight);
         piecesValueCounterEnemy -= (int)(maxAttackingPieceValue * maxAttackingPieceValueWeight); 
         
         //add check for the conclusion
@@ -317,6 +341,31 @@ public class Evaluate
         }
 
         return leastPiece;
+    }
+
+    private static bool CheckMateNextMove(Board board, Piece enemyPiece)
+    {
+        List<Position> validMoves = enemyPiece.GetValidMoves(board);
+        foreach(Position pos in validMoves)
+        {
+            Board copyBoard = new Board(board);
+
+            Move move = new Move(enemyPiece.GetX(), enemyPiece.GetY(), pos.x, pos.y, enemyPiece, board.FindPiece(pos.x, pos.y));
+            Console.WriteLine($"Checking move: {move.Name()}");
+
+            copyBoard.MovePieceOnBoard(move);
+
+            // If after the move, the current player has no legal moves, it's checkmate
+            if (!copyBoard.PlayerHaveMoves(enemyPiece.GetPieceColor().OppositeColor()))
+            {
+                return true;
+            }
+
+            copyBoard.UndoLastMove();
+        }
+
+        return false;
+
     }
 
 }

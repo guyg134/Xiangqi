@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using UnityEngine;
 
-public class BitBoard : MonoBehaviour
+public class BitBoard 
 {
 
     //save the black pieces in bitboard
@@ -11,7 +11,13 @@ public class BitBoard : MonoBehaviour
     private BigInteger redBitboard = 0;
 
 
-    public void SetBitBoards(Board board)
+    public BitBoard(BitBoard bitBoard)
+    {
+        redBitboard = bitBoard.GetRedBitboard();
+        blackBitboard = bitBoard.GetBlackBitboard();
+    }
+
+    public BitBoard(Board board)
     {
         redBitboard = BoardToBitboardByColor(board, GameColor.Red);
         blackBitboard = BoardToBitboardByColor(board, GameColor.Black);
@@ -29,11 +35,12 @@ public class BitBoard : MonoBehaviour
 
     public void UpdateBitBoard(Move move, GameColor color)
     {
+        BigInteger bitPosition = move.StartY * 9 + move.StartX;
+        BigInteger bitValue = 1;
+
         //if its red piece update red Bitboard
         if(color == GameColor.Red){
             //remove the current position of the piece in the board
-            BigInteger bitPosition = move.StartY * 9 + move.StartX;
-            BigInteger bitValue = 1;
             redBitboard ^= bitValue << (int)bitPosition;
 
             //update the new position in the board
@@ -48,8 +55,6 @@ public class BitBoard : MonoBehaviour
         //if its black update black Bitboard
         else{
             //remove the current position of the piece in the board
-            BigInteger bitPosition = move.StartY * 9 + move.StartX;
-            BigInteger bitValue = 1;
             blackBitboard ^= bitValue << (int)bitPosition;
 
             //update the new position in the board
@@ -58,6 +63,41 @@ public class BitBoard : MonoBehaviour
             //check if there is black piece and remove it from blackbitboard
             if((redBitboard & bitValue << (int)bitPosition) != 0)
                 redBitboard ^= bitValue << (int)bitPosition;
+
+            blackBitboard |= bitValue << (int)bitPosition;
+        }
+    }
+
+    public void UndoMoveBitboard(Move move, GameColor turnColor)
+    {
+        BigInteger bitPosition = move.EndY * 9 + move.EndX;
+        BigInteger bitValue = 1;
+
+        //if its red piece update red Bitboard
+        if(turnColor == GameColor.Red){
+            //remove the current position of the piece in the board
+            redBitboard ^= bitValue << (int)bitPosition;
+
+            //add the eaten piece to the enemy board(black)
+            if(move.EatenPiece)
+                blackBitboard |= bitValue << (int)bitPosition;
+
+            //update the new position in the board
+            bitPosition = move.StartY * 9 + move.StartX;
+
+            redBitboard |= bitValue << (int)bitPosition;
+        }
+        //if its black update black Bitboard
+        else{
+            //remove the current position of the piece in the board
+            blackBitboard ^= bitValue << (int)bitPosition;
+
+            //add the eaten piece to the enemy board(red)
+            if(move.EatenPiece)
+                redBitboard |= bitValue << (int)bitPosition;
+
+            //update the new position in the board
+            bitPosition = move.StartY * 9 + move.StartX;
 
             blackBitboard |= bitValue << (int)bitPosition;
         }
@@ -153,7 +193,7 @@ public class BitBoard : MonoBehaviour
         {
             print(row);
         }*/
-        print(bitboardString);
+        //print(bitboardString);
     }
 
     public static string BigIntegerToBinaryString(BigInteger value)

@@ -1,26 +1,36 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
-using UnityEngine.Android;
+using System.Numerics;
+
 
 
 public class Board
 {
 
-    Dictionary<PieceType, List<Piece>> board;
-    Stack<Move> movesSave = new Stack<Move>();
+    private Dictionary<PieceType, List<Piece>> board;
+    //bitboard
+    private BitBoard bitBoard;
+    private Stack<Move> movesSave;
 
     public Board()
     {
         board = new Dictionary<PieceType, List<Piece>>();
+        movesSave = new Stack<Move>();
+        bitBoard = null;
     }
 
     public Board(Board otherBoard)
     {
         //create clone of the board with different dictionary, list but the same pieces to save time
         this.board = CloneBoard(otherBoard.GetDictionary());
+        this.movesSave = new Stack<Move>(otherBoard.movesSave);
+        this.bitBoard = new BitBoard(otherBoard.bitBoard);
+    }
+
+    public void SetBitBoard()
+    {
+        this.bitBoard = new BitBoard(this);
     }
 
     public Dictionary<PieceType, List<Piece>> GetDictionary()
@@ -87,14 +97,16 @@ public class Board
 
     public Piece FindKing(GameColor gameColor)
     {
-        Piece king = board[PieceType.King][0];
-        if(king && king.GetPieceColor() == gameColor)
-            return king;
-
-        king = board[PieceType.King][1];
-        if(king)
-            return king; 
+        List<Piece> kings = board[PieceType.King];
+        foreach (Piece king in kings)
+        {
+            if (king.GetPieceColor() == gameColor)
+            {
+                return king;
+            }
+        }
         
+
         return null;
     }
     
@@ -115,6 +127,8 @@ public class Board
         {
             RemovePiece(eatenPiece);
         }
+
+        bitBoard.UpdateBitBoard(move, movingPiece.GetPieceColor());
 
         movesSave.Push(move);
     }
@@ -137,6 +151,7 @@ public class Board
             AddPiece(eatenPiece);
         }
 
+        bitBoard.UndoMoveBitboard(lastMove, movingPiece.GetPieceColor());
     }
 
     public List<string> GetMovesList(bool isRedPlayerDown)
@@ -160,6 +175,52 @@ public class Board
 
         return movesList;
         
+    }
+
+    public List<Position> GetValidMoves(BigInteger dotsBitboard, Piece piece)
+    {
+        //delete all the positions that have piece with the same color of this piece
+        dotsBitboard = bitBoard.BitboardMovesWithoutDefence(dotsBitboard, piece.GetPieceColor());
+
+        //change the bitboard moves to position positions
+        List<Position> dotsPos = bitBoard.BitboardToPosition(dotsBitboard);
+
+        //save the valids moves
+        List<Position> validMoves = new List<Position>();
+        //create dots for every position
+        foreach(Position dotPos in dotsPos)
+        {
+            Move move = new Move(piece.GetX(), piece.GetY(), dotPos.x, dotPos.y, piece, FindPiece(dotPos.x, dotPos.y));
+            bool isCheckAfterThisMove = IsKingUnderAttackAfterMove(move, piece.GetPieceColor().OppositeColor());
+            //if there is no check after the move add the move to the valids moves list
+            if(!isCheckAfterThisMove)
+            {
+                validMoves.Add(dotPos);
+            }
+            
+        }
+        return validMoves;  
+    }
+
+    private bool IsKingUnderAttackAfterMove(Move move, GameColor playerColor)
+    {
+        //create clone to save the board before
+        Board boardAfterMove = new Board(this);
+        //do the move
+        boardAfterMove.MovePieceOnBoard(move);
+
+        bool isKingUnderAttackAfterMove = bitBoard.IsCheck(boardAfterMove, playerColor);
+
+        boardAfterMove.UndoLastMove();
+
+    
+
+        return isKingUnderAttackAfterMove;
+    }
+
+    public bool IsCheck(GameColor turnColor)
+    {
+        return bitBoard.IsCheck(this, turnColor);
     }
 
     public Dictionary<PieceType, List<Piece>> CloneBoard(Dictionary<PieceType, List<Piece>> cloneBoard)

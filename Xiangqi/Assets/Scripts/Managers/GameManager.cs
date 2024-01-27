@@ -102,7 +102,7 @@ public class GameManager : MonoBehaviour
         if(Time.timeScale != 0)
             IsAiTurn();
 
-        float eval = (float)Evaluate.EvaluatePosition(gameBoard.GetBoard(), GetTurnPlayer())/10000;
+        float eval = (float)Evaluate.EvaluatePosition(gameBoard.GetBoard(), players[turnInt ^ 1])/10000;
 
         uIManager.ChangeEvalBar(eval);
         uIManager.ChangeMovesNumberText(++movesCounter);

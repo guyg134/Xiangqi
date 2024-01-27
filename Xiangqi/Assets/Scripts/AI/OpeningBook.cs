@@ -28,13 +28,21 @@ public class OpeningBook
          "D3E3", "G7F7", "A8G8", "J4I5", "A2C3", "H8H9", "G8G7", "H9I9",
          "C2C1", "I9I7", "G7G6", "H7F8", "A1A2", "J1J2", "G6I6", "H2I2",
          "I6F6", "J3H5", "A2H2", "F8D7", "F6D6", "I7H7", "C3E4", "J2J4",
-         "D6E6", "I2I4", "C5C3", "F7E7", "E6D6" 
-        }, 
+         "D6E6", "I2I4", "C5C3", "F7E7", "E6D6"     
+         }, 
 
-        //opening 4
-        //new List<string> { "A8C7", "J2H3", "C8C5", "J8H7"},
+        //opening 4 2 knights for black with no central cannon
+        new List<string> {  "C8C5", "J8H7", "A8C7", "J2H3" , "A9A8", "J9J8",
+         "G7F7", "A8G8"
+         },
+
+        //opening 5 same direction cannon
+        new List<string> { "C8C5", "H8H5", "A8C7", "J8H7", "A9A8", "J9I9",
+         "A2C3", "I9I4", "D3E3", "J2H3", "D7E7", "I4D4"
+         },
+
         };
-
+    //   C8C5 J8H7 A8C7
     // Creates a tree of all the openings
     public OpeningBook()
     {

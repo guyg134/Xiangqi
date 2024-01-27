@@ -15,41 +15,40 @@ public class SearchMove : MonoBehaviour
     [SerializeField] private bool doRandomMove = false;
 
 
-    private bool HaveOpening;
 
     public void SetSearchMove(Player player)
     {
         this.Player = player;
         openingBook = new OpeningBook();
-        HaveOpening = true;
     }
 
     public void DoTurn()
     {
         int movesPlayed = gameManager.GetMovesCounter();
 
-        Move move = GetMove();
+        Move move = GetMove(movesPlayed);
         //print("x: " + move.StartX + " y: " + move.StartY + " x: " + move.EndX + " y: " + move.EndY);
         StartCoroutine(DoMove(move.MovingPiece, move.PositionEnd));
     }
 
-    public Move GetMove()
+    public Move GetMove(int movesPlayed)
     {
         //do random move
         if(doRandomMove)
             return DoRandomMove();
 
-        Move openingMove = OpeningMove();
-            
-        //if there is opening move, do it
-        if(openingMove != null)
+        if(movesPlayed < 37)
         {
-            print("move is from opening");
-            return openingMove;
+            Move openingMove = OpeningMove();
+            if(openingMove != null)
+            {
+                print("move is from opening");
+                return openingMove;
+            }
         }
+            
         //if there is no opening move, generate move
         print("move is generated");
-        HaveOpening = false;
         return GenerateMove();
     }
 
@@ -83,7 +82,7 @@ public class SearchMove : MonoBehaviour
         else
             bestEval = 1000000000;     
         
-        Move bestMove = new Move(0,0,0,0, null, null);
+        List<Move> bestMoves = new List<Move>();
 
         Board board = gameBoard.GetBoard();
 
@@ -107,18 +106,32 @@ public class SearchMove : MonoBehaviour
                     
                     if(playerColor == GameColor.Red)
                     {
-                        if(evalMove > bestEval)
+                        if(evalMove == bestEval)
+                        {
+                            bestMoves.Add(move);
+                        }
+                        else if(evalMove > bestEval)
                         {
                             bestEval = evalMove;
-                            bestMove = move;
+
+                            //clear the list and add the new best move
+                            bestMoves.Clear();
+                            bestMoves.Add(move);
                         }
                     }
                     else
                     {
-                        if(evalMove < bestEval)
+                        if(evalMove == bestEval)
+                        {
+                            bestMoves.Add(move);
+                        }
+                        else if(evalMove < bestEval)
                         {
                             bestEval = evalMove;
-                            bestMove = move;
+                            
+                            //clear the list and add the new best move
+                            bestMoves.Clear();
+                            bestMoves.Add(move);
                         }
                     }
 
@@ -126,8 +139,8 @@ public class SearchMove : MonoBehaviour
                 }
             } 
         }
-        
-        return bestMove;
+        int randomIndex = Random.Range(0, bestMoves.Count);
+        return bestMoves[randomIndex];
     } 
 
     private Move OpeningMove()
@@ -137,9 +150,8 @@ public class SearchMove : MonoBehaviour
         string moveString = openingBook.GetRandomOpeningMove(movesInGame);
 
         //if there is no opening move, return null
-        if(!HaveOpening || moveString == null)
+        if(moveString == null)
         {
-            HaveOpening = false;
             return null;
         }
 

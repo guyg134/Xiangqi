@@ -5,6 +5,8 @@ using Image = UnityEngine.UI.Image;
 
 public class UIManager : MonoBehaviour
 {
+    private const float BOARD_SQUARE_LENGTH = 0.8625f;
+    private const float BOARD_SQUARE_HEIGHT = 3.88f;
 
     //pieces sprite asset of black and redd pieces and the prefab of the piece
     [SerializeField] private Sprite[] redPiecesSprites;
@@ -86,7 +88,7 @@ public class UIManager : MonoBehaviour
 
     private  Vector2 PositionToVector2(int x, int y)
     {
-        return new Vector2((x * GameBoard.BOARD_SQUARE_LENGTH) - (GameBoard.BOARD_SQUARE_LENGTH*4), (y * GameBoard.BOARD_SQUARE_LENGTH)-GameBoard.BOARD_SQUARE_HEIGHT);
+        return new Vector2((x * BOARD_SQUARE_LENGTH) - (BOARD_SQUARE_LENGTH*4), (y * BOARD_SQUARE_LENGTH)- BOARD_SQUARE_HEIGHT);
     }
 
     public void ChangeMovesNumberText(int moves)

@@ -3,10 +3,9 @@ using System.Collections.Generic;
 using System.Numerics;
 using UnityEngine;
 
+//this class is the game board that keep all the pieces and the positions, create the board and connect with object in the scene
 public class GameBoard : MonoBehaviour
 {
-    public static float BOARD_SQUARE_LENGTH = 0.8625f;
-    public static float BOARD_SQUARE_HEIGHT = 3.88f;
     
     //array that keeps all the positions with int that represent the piece and the color
     //private Piece[,] pieces = new Piece[10, 9];
@@ -14,9 +13,6 @@ public class GameBoard : MonoBehaviour
     //private Piece[] piecesCounter = new Piece[18];
 
     private Board board;
-     
-    //bitboard
-    private BitBoard bitBoard;
     
     private GameManager gameManager;
     private UIManager uIManager;
@@ -27,7 +23,6 @@ public class GameBoard : MonoBehaviour
         //setup 
         this.gameManager = gameManager.GetComponent<GameManager>();
         this.uIManager = gameManager.GetComponent<UIManager>();
-        bitBoard = GetComponent<BitBoard>();
 
         //when player playing red pieces
         string startFenRed = "rneakaenr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNEAKAENR";
@@ -39,9 +34,7 @@ public class GameBoard : MonoBehaviour
         gameFen = playerColor==GameColor.Red ? startFenRed : startFenBlack;
         board = new Board();
         LoadPositionFromFen(gameFen);
-
-        bitBoard.SetBitBoards(board);
-        bitBoard.PrintCurrentBitBoard();
+        board.SetBitBoard();
     }
 
 
@@ -105,31 +98,6 @@ public class GameBoard : MonoBehaviour
         return board;
     }
 
-    public List<Position> GetValidMoves(BigInteger dotsBitboard, Piece piece, int startX, int startY)
-    {
-        //delete all the positions that have piece with the same color of this piece
-        dotsBitboard = bitBoard.BitboardMovesWithoutDefence(dotsBitboard, piece.GetPieceColor());
-
-        //change the bitboard moves to position positions
-        List<Position> dotsPos = bitBoard.BitboardToPosition(dotsBitboard);
-
-        //save the valids moves
-        List<Position> validMoves = new List<Position>();
-        //create dots for every position
-        foreach(Position dotPos in dotsPos)
-        {
-            Move move = new Move(startX, startY, dotPos.x, dotPos.y, piece, board.FindPiece(dotPos.x, dotPos.y));
-            bool isCheckAfterThisMove = IsKingUnderAttackAfterMove(move, piece.GetPieceColor().OppositeColor());
-            //if there is no check after the move add the move to the valids moves list
-            if(!isCheckAfterThisMove)
-            {
-                validMoves.Add(dotPos);
-            }
-            
-        }
-        return validMoves;  
-    }
-
     public Piece GetPiece(int x, int y)
     {
         return board.FindPiece(x, y);
@@ -162,9 +130,6 @@ public class GameBoard : MonoBehaviour
         //update piece on screen
         uIManager.MovePieceInScreen(move.MovingPiece, move);
 
-        //update the piece in the bitboard
-        bitBoard.UpdateBitBoard(move, move.MovingPiece.GetPieceColor());
-
         //check if there is check on the king now
         CheckGameState();
 
@@ -175,7 +140,7 @@ public class GameBoard : MonoBehaviour
     private void CheckGameState()
     {
         GameColor turnColor = gameManager.GetTurnColor();
-        if(bitBoard.IsCheck(board, turnColor))
+        if(board.IsCheck(turnColor))
         {
             //find the enemy king and draw the check circle
             Position enemyKingPos = board.FindKing(gameManager.GetTurnColor().OppositeColor()).GetPos();
@@ -208,7 +173,7 @@ public class GameBoard : MonoBehaviour
 
     private bool IsDraw()
     {
-        if(board.GetPieceCount(PieceType.Cannon) != 0 || board.GetPieceCount(PieceType.Rook) != 0 || board.GetPieceCount(PieceType.Soldier) != 0 || board.GetPieceCount(PieceType.Knight) != 0)
+        if(board.GetPieceCount(PieceType.Cannon) > 1 || board.GetPieceCount(PieceType.Rook) != 0 || board.GetPieceCount(PieceType.Soldier) > 1 || board.GetPieceCount(PieceType.Knight) != 0)
         {
             return false;
         }
@@ -216,25 +181,10 @@ public class GameBoard : MonoBehaviour
         return true;
     }
 
-    public bool IsKingUnderAttackAfterMove(Move move, GameColor playerColor)
+
+    public static bool PieceCanAttackKing(PieceType pieceType)
     {
-        //create clone to save the board before
-        Board boardAfterMove = new Board(board);
-        //do the move
-        boardAfterMove.MovePieceOnBoard(move);
-
-        bool isKingUnderAttackAfterMove = bitBoard.IsCheck(boardAfterMove, playerColor);
-
-        boardAfterMove.UndoLastMove();
-
-    
-
-        return isKingUnderAttackAfterMove;
-    }
-
-    public void BackLastMove()
-    {
-        board.UndoLastMove();
+        return pieceType == PieceType.Cannon || pieceType == PieceType.Soldier || pieceType == PieceType.Knight || pieceType == PieceType.Rook;
     }
 
 }
