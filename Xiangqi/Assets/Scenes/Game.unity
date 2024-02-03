@@ -6881,7 +6881,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &960103026
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6896,7 +6896,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gameBoard: {fileID: 194607112}
   gameManager: {fileID: 2139741961}
-  timeForMove: 1
+  timeForMove: 0
   doRandomMove: 0
 --- !u!4 &960103027
 Transform:

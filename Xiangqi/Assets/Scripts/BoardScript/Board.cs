@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.WindowsRuntime;
 
 
 
@@ -197,6 +198,7 @@ public class Board
         {
             Move move = new Move(piece.GetX(), piece.GetY(), dotPos.x, dotPos.y, piece, FindPiece(dotPos.x, dotPos.y));
             bool isCheckAfterThisMove = IsKingUnderAttackAfterMove(move, piece.GetPieceColor().OppositeColor());
+            
             //if there is no check after the move add the move to the valids moves list
             if(!isCheckAfterThisMove)
             {
@@ -205,6 +207,32 @@ public class Board
             
         }
         return validMoves;  
+    }
+
+    public bool IsRepetitiveMove()
+    {
+        int repetitions = 0;
+        Stack<Move> movesCopy = new Stack<Move>(movesSave);
+        Move currentMove = movesCopy.Pop();
+
+        for(int i = 0; i < 2; i++)
+        foreach (Move prevMove in movesCopy)
+        {
+            if (currentMove.Equals(prevMove))
+            {
+                repetitions++;
+                if (repetitions >= 3)
+                {
+                    // Disable this pattern from repeating the 4th time
+                    return true;
+                }
+            }
+            else
+            {
+                repetitions = 0; // Reset repetitions if the pattern breaks
+            }
+        }
+        return false;
     }
 
     public GameState GetGameState()
@@ -249,7 +277,7 @@ public class Board
         int redPieces = 0;
         int blackPieces = 0;
 
-        //O(n) - n is the number of pieces = 32 max
+        //O(32) - n is the number of pieces = 32 max, possibly less because this check is only called when the game is in the middle game
         foreach(PieceType pieceType in board.Keys)
         {
             foreach(Piece piece in board[pieceType])
@@ -264,8 +292,8 @@ public class Board
                 }
             }
         }
-        //if there is less than 6 pieces of one color and there is more than 50 moves, it is endgame
-        return (redPieces <= 6 || blackPieces <= 6) && movesSave.Count > 50;
+        //if there is less than 6 pieces of one color and there is more than 60 moves, it is endgame
+        return (redPieces <= 6 || blackPieces <= 6) && movesSave.Count > 60;
     }
 
     private bool IsKingUnderAttackAfterMove(Move move, GameColor playerColor)

@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using UnityEditor;
 using UnityEditor.VersionControl;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -16,8 +18,9 @@ public class SearchMove : MonoBehaviour
     [SerializeField] private bool doRandomMove = false;
 
     public static int o = 0;
+    private static double worthTime;
 
-    private const double tolerance = 0.0001;
+    private const double tolerance = 0.1;
 
 
 
@@ -29,10 +32,22 @@ public class SearchMove : MonoBehaviour
 
     public void DoTurn()
     {
+        DateTime start = DateTime.Now;
+        o = 0;
 
         int movesPlayed = gameManager.GetMovesCounter();
         //find the move to do
         Move move = GetMove(movesPlayed);
+
+        //calculate the time it took to find the move
+        double timeToMove = (DateTime.Now - start).TotalSeconds;
+        if( timeToMove > worthTime)
+        {
+            worthTime = timeToMove;
+        }
+
+        print("time took to move: " + timeToMove + "worth time to move: " + worthTime + " function calls: " + o);
+
         //do the move
         StartCoroutine(DoMove(move.MovingPiece, move.PositionEnd));
     }
@@ -79,20 +94,18 @@ public class SearchMove : MonoBehaviour
     
     private Move GenerateMove()
     {
-        DateTime start = DateTime.Now;
-
         double bestEval;
         GameColor playerColor = Player.playerColor;
-        
+        //set the best evaluation to the lowest possible value if the player is red, and to the highest possible value if the player is black
         if(playerColor == GameColor.Red)
             bestEval   = -1000000000;       
         else
             bestEval = 1000000000;     
         
         List<Move> bestMoves = new List<Move>();
-
         Board board = gameBoard.GetBoard();
-        o = 0;
+
+        //iterate through all the pieces
         for(int i = 1; i < 8; i++)
         {
             Board copyBoard = new Board(board);
@@ -111,16 +124,29 @@ public class SearchMove : MonoBehaviour
                         copyBoard.MovePieceOnBoard(move);
                         
                         //evaluate the move
-                        double evalMove = Evaluate.EvaluateMove(copyBoard, Player, bestEval, copyBoard.GetGameState());
+                        double evalMove = Evaluate.EvaluatePosition(copyBoard, Player);
                         //if the player is red, so the best move is the one with the highest evaluation
                         //if the player is black, so the best move is the one with the lowest evaluation
                         if ((playerColor == GameColor.Red && evalMove > bestEval) || (playerColor == GameColor.Black && evalMove < bestEval))
                         {
-                            bestMoves.Clear();
-                            bestEval = evalMove;
+                            //if the move is a checkmate, set the evaluation to the checkmate value
+                            if(Evaluate.CheckMateNextMove(copyBoard, playerColor.OppositeColor()))
+                            {
+                                evalMove = playerColor == GameColor.Red ? -Evaluate.checkMateValue : Evaluate.checkMateValue;
+                                if(!bestMoves.Any())
+                                {
+                                    bestMoves.Clear();
+                                    bestEval = evalMove;
+                                }
+                            }
+                            else
+                            {
+                                bestMoves.Clear();
+                                bestEval = evalMove;
+                            }
                         }
                         //if the evaluation of the move is really close to the best evaluation, add it to the best moves list
-                        if(evalMove == bestEval) //(Math.Abs(evalMove - bestEval) < tolerance)
+                        if(Math.Abs(evalMove - bestEval) < tolerance)
                         {
                             bestMoves.Add(move);
                         }
@@ -130,7 +156,6 @@ public class SearchMove : MonoBehaviour
                 } 
             }
         }
-        print("time took to move: " + (DateTime.Now - start).TotalSeconds + " function calls: " + o);
         
         int randomIndex = Random.Range(0, bestMoves.Count);
         return bestMoves[randomIndex];

@@ -8,9 +8,9 @@ public class OpeningEvaluation : EvaluationState
     
     // Weights
     private const double checkWeight = 1f; 
-    private const double pieceValueDiffWeight = 1.5f; 
-    private const double playerIntersectionWeight = 0.3f; 
-    private const double enemyIntersectionWeight = 0.3f; 
+    private const double pieceValueDiffWeight = 1f; 
+    private const double playerIntersectionWeight = 0.45f; 
+    private const double enemyIntersectionWeight = 0.45f; 
     private const double maxUndefendedPieceValueWeight = 1f; 
     private const double maxAttackingPieceValueWeight = 0.1f;
 
@@ -40,7 +40,6 @@ public class OpeningEvaluation : EvaluationState
 
     protected override double CalculateEvaluation(GameColor turnColor)
     {
-        Debug.Log("opening evaluation");
         double eval = 0;
 
         //add check for the conclusion

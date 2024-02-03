@@ -10,10 +10,13 @@ public class MidgameEvaluation : EvaluationState
     // Weights
     protected const double checkWeight = 1.5f; 
     protected const double pieceValueDiffWeight = 2; 
-    protected const double playerIntersectionWeight = 0.25f; 
-    protected const double enemyIntersectionWeight = 0.25f; 
-    protected const double maxUndefendedPieceValueWeight = 1.2f; 
+    protected const double playerIntersectionWeight = 0.22f; 
+    protected const double enemyIntersectionWeight = 0.22f; 
+    protected const double maxUndefendedPieceValueWeight = 1.5f; 
     protected const double maxAttackingPieceValueWeight = 0.2f;
+
+        //(18700, 400, 500, 600, 800, 600, 300) 
+
 
     // Piece values
     protected const int kingValue = 18700;
@@ -41,27 +44,21 @@ public class MidgameEvaluation : EvaluationState
 
     protected override double CalculateEvaluation(GameColor turnColor)
     {
-        Debug.Log("Mid evaluation");
         double eval = 0;
 
         //add check for the conclusion
         eval += checkWeight * CheckBonus;
-        Debug.Log("CheckBonus: " + CheckBonus + " eval: " + eval);
 
         PiecesValueCounterPlayer -= (int)(MaxUnDefendedPieceValue * maxUndefendedPieceValueWeight);
-        Debug.Log("MaxAttackingPieceValue: " + MaxAttackingPieceValue + "piece value counter enemy " + PiecesValueCounterEnemy + " eval: " + eval);
         PiecesValueCounterEnemy -= (int)(MaxAttackingPieceValue * maxAttackingPieceValueWeight); 
-        Debug.Log("piece value counter enemy after calc " + PiecesValueCounterEnemy + " eval: " + eval);
         
         //add the pieces differences of the players
          // Adjust the weight as needed
         eval += pieceValueDiffWeight * (PiecesValueCounterPlayer - PiecesValueCounterEnemy);
-        Debug.Log("PiecesValueCounterPlayer: " + PiecesValueCounterPlayer + " PiecesValueCounterEnemy: " + PiecesValueCounterEnemy + " eval: " + eval);
 
         //add the pieces positions 
         eval += playerIntersectionWeight * (PlayerPiecesIntersectionEvaluateSum / PiecesCounterPlayer);
         eval -= enemyIntersectionWeight * (EnemyPiecesIntersectionEvaluateSum / PiecesCounterEnemy);
-        Debug.Log("PlayerPiecesIntersectionEvaluateSum: " + PlayerPiecesIntersectionEvaluateSum + " EnemyPiecesIntersectionEvaluateSum: " + EnemyPiecesIntersectionEvaluateSum + " eval: " + eval);
         
         return turnColor == GameColor.Red ? eval : -eval;
     }

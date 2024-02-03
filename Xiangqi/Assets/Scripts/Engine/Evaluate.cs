@@ -6,9 +6,6 @@ using UnityEngine;
 
 public class Evaluate 
 {
-
-    //(18700, 400, 500, 600, 800, 600, 300) 
-
     public static readonly int checkMateValue = 25000;
 
 
@@ -16,9 +13,9 @@ public class Evaluate
     const GameColor black = GameColor.Black;
 
 
-    private static double EvaluatePosition(Board board, Player currentPlayer, GameState gameState)
+    public static double EvaluatePosition(Board board, Player currentPlayer)
     {
-        
+        GameState gameState = board.GetGameState();
         GameColor turnColor = currentPlayer.playerColor;
 
         // If there is no moves for the player or the enemy return checkmate value
@@ -38,45 +35,19 @@ public class Evaluate
         return evaluateState.EvaluateState(board, currentPlayer);
     }
 
-    // Evaluate the position and return the evaluate value (for the bots)
-    public static double EvaluateMove(Board board, Player currentPlayer, double bestEval, GameState gameState)
-    {
-        double evalMove = EvaluatePosition(board, currentPlayer, gameState); 
-        GameColor playerColor = currentPlayer.playerColor;
-
-        //if the current move is better than the best move, check if the next move is checkmate if not return the new evaluate number
-        if ((playerColor == red && evalMove > bestEval) || (playerColor == black && evalMove < bestEval))
-        {
-            //if the next move is checkmate, return the checkmate value
-            if(CheckMateNextMove(board, playerColor.OppositeColor()))
-            {
-                return EvaluateNumberByColor(checkMateValue, playerColor.OppositeColor());
-            }
-            //if the next move is not checkmate, return the evaluate number
-            else
-            {
-                return evalMove;
-            }
-        }
-        //if the current move is not better than the best move, return the best move
-        return bestEval;
-    }
-
     //evaluate the current position and return the evaluate value (for the eval bar)
     public static double EvaluateCurrentPosition(Board board, Player currentPlayer)
     {
-        GameState gameState = board.GetGameState();
-
         if(CheckMateNextMove(board, currentPlayer.playerColor.OppositeColor()))
         {
             return EvaluateNumberByColor(checkMateValue, currentPlayer.playerColor.OppositeColor());
         }
 
-        return EvaluatePosition(board, currentPlayer, gameState);
+        return EvaluatePosition(board, currentPlayer);
        
     }
 
-    private static bool CheckMateNextMove(Board board, GameColor enemyColor)
+    public static bool CheckMateNextMove(Board board, GameColor enemyColor)
     {
         Board copyBoard = new Board(board);
         

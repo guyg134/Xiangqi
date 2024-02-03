@@ -109,7 +109,7 @@ public abstract class EvaluationState
             else if(isPlayerPiece)
             {
                 // If the piece is not defended or there is more than 1 enemy piece attacking it, update the max undefended piece value with the piece value
-                if ((bitPiecePos & playerAttackingBitboard) == 0)//|| attackingPieces.Count > 1)
+                if ((bitPiecePos & playerAttackingBitboard) == 0 || attackingPieces.Count > 1)
                 {
                     UpdateMaxUnDefendedPieceValue(PieceValues[(int)piece.GetPieceType()]);
                 }
@@ -232,6 +232,19 @@ public abstract class EvaluationState
             }
         }
         return mostValuablePiece;
+    }
+
+    private Piece LeastValuablePiece(List<Piece> pieces)
+    {
+        Piece leastValuablePiece = pieces[0];
+        foreach (Piece piece in pieces)
+        {
+            if (PieceValues[(int)piece.GetPieceType()] < PieceValues[(int)leastValuablePiece.GetPieceType()])
+            {
+                leastValuablePiece = piece;
+            }
+        }
+        return leastValuablePiece;
     }
 
     private bool PiecesAreOnSafeIntersection(List<Piece> pieces, BigInteger attackingBitboard)

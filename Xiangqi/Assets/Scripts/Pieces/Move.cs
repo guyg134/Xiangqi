@@ -5,8 +5,8 @@ using System.Numerics;
 public class Move
 {
 
-    public Position startPosition{ get; }
-    public Position endPosition{ get; }
+    public Position startPosition{ get; private set;}
+    public Position endPosition{ get; private set;}
     private Piece movingPiece;
     private Piece eatenPiece;
 
@@ -43,7 +43,7 @@ public class Move
 
     public string Name()
     {
-        return MoveToName(this);
+        return "" + NumberToLetter(startPosition.y) + (startPosition.x +1) + NumberToLetter(endPosition.y) + (endPosition.x +1);
     }
 
     public Position PositionStart
@@ -94,11 +94,6 @@ public class Move
         endPosition.ChangeSidePosition();
     }
 
-    public string MoveToName(Move move)
-    {
-        return "" + NumberToLetter(move.StartY) + (move.StartX +1) + NumberToLetter(move.EndY) + (move.EndX +1);
-    }
-
     public static Move NameToMove(string name)
     {
         int startX = int.Parse(name[1].ToString()) - 1;
@@ -117,6 +112,13 @@ public class Move
     private static int LetterToNumber(char letter)
     {
         return letter - 'A';
+    }
+
+    public void ReverseMove()
+    {
+        Position temp = startPosition;
+        startPosition = endPosition;
+        endPosition = temp;
     }
 
     public bool Equal(Move move)
