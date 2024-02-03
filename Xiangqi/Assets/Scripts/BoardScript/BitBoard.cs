@@ -106,13 +106,17 @@ public class BitBoard
     public bool IsCheck(Board board, GameColor currentTurnColor)
     {   
         BigInteger kingPos = PosToBitInteger(board.FindKing(currentTurnColor.OppositeColor()).GetPos());
-        BigInteger attackPos;
-
-        attackPos = AttackingSquaresBitboard(board, currentTurnColor);
         
-        if((attackPos & kingPos) != 0)
+        //go over all the pieces and check if they can attack the king, stop when you find one
+        for(int i = 1; i < 8; i++)
         {
-            return true;
+            foreach(Piece piece in board.GetPiecesInType((PieceType)i))
+            {
+                if(piece.GetPieceColor() == currentTurnColor && (piece.GetPieceBitboardMove(board) & kingPos) != 0)
+                {
+                    return true;
+                }
+            }
         }
        
         return false;
@@ -137,7 +141,7 @@ public class BitBoard
         return bitboard;
     }
 
-    public static BigInteger AttackingSquaresBitboard(Board board, GameColor pieceColor)
+    public static BigInteger IntersectionsUnderAttackByColor(Board board, GameColor pieceColor)
     {
         BigInteger attackPos = 0;
 
@@ -160,6 +164,7 @@ public class BitBoard
     {
         List<Piece> pieces = new List<Piece>();
         //check all the pieces that can attack the pos
+        //O(16 * n) n- number of moves of the piece
         for(int i = 1; i < 8; i++)
         {
             foreach(Piece piece in board.GetPiecesInType((PieceType)i))
@@ -188,16 +193,13 @@ public class BitBoard
     public static void PrintBitBoard(BigInteger bitboardInt)
     {
         string bitboardString = BigIntegerToBinaryString(bitboardInt);
-        /*string[] rows = bitboard.Split(' ');
-        foreach(var row in rows)
-        {
-            print(row);
-        }*/
-        //print(bitboardString);
+
     }
 
     public static string BigIntegerToBinaryString(BigInteger value)
     {
+        //O(1)
+
         int rowLength = 9;
         int totalBits = 90; // Assuming a 9x10 board
         string binaryString = "";
@@ -237,6 +239,7 @@ public class BitBoard
 
     public List<Position> BitboardToPosition(BigInteger bitboard)
     {
+        //O(1)
         int totalBits = 90; // Assuming a 9x10 board
         List<Position> positions = new List<Position>();
 
@@ -251,6 +254,7 @@ public class BitBoard
 
     public static BigInteger PosToBitInteger(int x , int y)
     {
+        //O(1)
         BigInteger bitPos = 0;
         BigInteger bitPosition = y * 9 + x;
         BigInteger value = 1;
@@ -264,6 +268,7 @@ public class BitBoard
 
     public static BigInteger PosToBitInteger(Position pos)
     {
+        //O(1)
         BigInteger bitPos = 0;
         BigInteger bitPosition = pos.y * 9 + pos.x;
         BigInteger value = 1;
@@ -277,6 +282,7 @@ public class BitBoard
 
     public BigInteger BitboardMovesWithoutDefence(BigInteger bitboardMoves, GameColor playerColor)
     {
+        //O(1)
         //red turn
         if(playerColor == GameColor.Red)
             return (bitboardMoves|redBitboard) ^  redBitboard;

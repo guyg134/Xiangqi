@@ -95,14 +95,15 @@ public class GameManager : MonoBehaviour
     }
     public void ChangeTurn()
     {
+        //evaluate the current board for the player that just played
+        float eval = (float)Evaluate.EvaluateCurrentPosition(gameBoard.GetBoard(), players[turnInt])/Evaluate.checkMateValue;
+
         turnInt ^= 1;
 
         //change the turn text to the current turn
         uIManager.ChangeTurnText(GetTurnColor());
         if(Time.timeScale != 0)
             IsAiTurn();
-
-        float eval = (float)Evaluate.EvaluatePosition(gameBoard.GetBoard(), players[turnInt ^ 1])/10000;
 
         uIManager.ChangeEvalBar(eval);
         uIManager.ChangeMovesNumberText(++movesCounter);

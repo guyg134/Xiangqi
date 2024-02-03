@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class EvaluatePieceIntersectionsTables
 {
-    private static Dictionary<PieceType, float[,]> pieceSquareTable;
+    private static readonly Dictionary<PieceType, float[,]> pieceSquareTable;
     
     static EvaluatePieceIntersectionsTables()
     {
@@ -34,7 +34,7 @@ public class EvaluatePieceIntersectionsTables
                 { 14, 26, 42, 60, 80, 60, 42, 26, 14},
                 { 10, 20, 30, 34, 40, 34, 30, 20, 10},
                 {  6, 12, 18, 18, 20, 18, 18, 12, 6},
-                {  2, 0, 12, 0, 8, 0, 12, 0, 2},
+                {  2, 0, 10, 0, 8, 0, 10, 0, 2},
                 {  0, 0, -2, 0, 4, 0, -2, 0, 0},
                 {  0, 0, 0, 0,  0, 0, 0, 0, 0},
                 {  0, 0, 0, 0,  0, 0, 0, 0, 0},
@@ -50,7 +50,7 @@ public class EvaluatePieceIntersectionsTables
                 {0, 6, 10, 16, 20, 16, 10, 6, 0},
                 {0, 6, 10, 16, 20, 16, 10, 6, 0},
                 {1, 6, 8, 12, 10, 12, 8, 6, 1},
-                {0, 3, 4, 8, 10, 8, 4, 3, 0},
+                {0, 3, 6, 8, 10, 8, 6, 3, 0},
                 {0, 1, 3, 6, 6, 6, 3, 1, 0},
                 {0, 0, 0, 1, 0, 1, 0, 0, 0}
             },
@@ -112,8 +112,17 @@ public class EvaluatePieceIntersectionsTables
         };
     }
 
-    public static float GetPieceSquareValue(PieceType pieceType, int x, int y)
-    {
-        return pieceSquareTable[pieceType][9 - y, x];
+    public static float GetPieceIntersectionValue(PieceType pieceType, int x, int y, bool isDownSide)
+    {   
+        // Get the piece square value based on the piece type and the position on the board (9 - y because array's y is 0 on top and 9 on bottom)
+        int xTable = x;
+        int yTable = 9 - y;
+        if(!isDownSide)
+        {
+            xTable = 8 - x;
+            yTable = 9 - yTable;
+        }
+        
+        return pieceSquareTable[pieceType][yTable, xTable];
     }
 }

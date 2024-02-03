@@ -5305,7 +5305,7 @@ GameObject:
   m_Component:
   - component: {fileID: 188736684}
   m_Layer: 0
-  m_Name: AI's
+  m_Name: Bots
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6595,7 +6595,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: -90}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.6392757}
-  m_AnchoredPosition: {x: 1, y: -13}
+  m_AnchoredPosition: {x: 0, y: -13}
   m_SizeDelta: {x: 348.26318, y: 74.99094}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &827907736
@@ -6876,12 +6876,12 @@ GameObject:
   - component: {fileID: 960103026}
   - component: {fileID: 960103028}
   m_Layer: 0
-  m_Name: Bo2
+  m_Name: Botdown
   m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &960103026
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6896,7 +6896,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gameBoard: {fileID: 194607112}
   gameManager: {fileID: 2139741961}
-  timeForMove: 0
+  timeForMove: 1
   doRandomMove: 0
 --- !u!4 &960103027
 Transform:
@@ -7084,12 +7084,12 @@ GameObject:
   - component: {fileID: 1262958404}
   - component: {fileID: 1262958406}
   m_Layer: 0
-  m_Name: Bot1
+  m_Name: Botup
   m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1262958404
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12489,8 +12489,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1069242144}
   m_HandleRect: {fileID: 1069242143}
   m_Direction: 0
-  m_Value: -0.000009315462
-  m_Size: 0.9598528
+  m_Value: -0.000008383932
+  m_Size: 0.9598529
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:

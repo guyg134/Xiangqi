@@ -181,10 +181,4 @@ public class GameBoard : MonoBehaviour
         return true;
     }
 
-
-    public static bool PieceCanAttackKing(PieceType pieceType)
-    {
-        return pieceType == PieceType.Cannon || pieceType == PieceType.Soldier || pieceType == PieceType.Knight || pieceType == PieceType.Rook;
-    }
-
 }

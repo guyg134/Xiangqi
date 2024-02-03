@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor.VersionControl;
@@ -14,6 +15,10 @@ public class SearchMove : MonoBehaviour
     [SerializeField] private float timeForMove = 0;
     [SerializeField] private bool doRandomMove = false;
 
+    public static int o = 0;
+
+    private const double tolerance = 0.0001;
+
 
 
     public void SetSearchMove(Player player)
@@ -24,10 +29,11 @@ public class SearchMove : MonoBehaviour
 
     public void DoTurn()
     {
-        int movesPlayed = gameManager.GetMovesCounter();
 
+        int movesPlayed = gameManager.GetMovesCounter();
+        //find the move to do
         Move move = GetMove(movesPlayed);
-        //print("x: " + move.StartX + " y: " + move.StartY + " x: " + move.EndX + " y: " + move.EndY);
+        //do the move
         StartCoroutine(DoMove(move.MovingPiece, move.PositionEnd));
     }
 
@@ -37,18 +43,17 @@ public class SearchMove : MonoBehaviour
         if(doRandomMove)
             return DoRandomMove();
 
-        if(movesPlayed < 37)
+        //if moves played are less than 40, try to do an opening move
+        if(movesPlayed < 40)
         {
             Move openingMove = OpeningMove();
             if(openingMove != null)
             {
-                print("move is from opening");
                 return openingMove;
             }
         }
             
         //if there is no opening move, generate move
-        print("move is generated");
         return GenerateMove();
     }
 
@@ -74,6 +79,8 @@ public class SearchMove : MonoBehaviour
     
     private Move GenerateMove()
     {
+        DateTime start = DateTime.Now;
+
         double bestEval;
         GameColor playerColor = Player.playerColor;
         
@@ -85,60 +92,46 @@ public class SearchMove : MonoBehaviour
         List<Move> bestMoves = new List<Move>();
 
         Board board = gameBoard.GetBoard();
-
+        o = 0;
         for(int i = 1; i < 8; i++)
         {
+            Board copyBoard = new Board(board);
             foreach(Piece piece in board.GetPiecesInType((PieceType)i))
             {
-                if(!piece || piece.GetPieceColor() != playerColor) continue;
-
-                
-
-                foreach(Position pos in piece.GetValidMoves(board))
+                //if the piece is an enemy piece, continue
+                if(piece.GetPieceColor() == playerColor)
                 {
-                    //create clone to save the board before
-                    Board boardAfterMove = new Board(board);
-                    Move move = new Move(piece.GetX(), piece.GetY(), (int)pos.x, (int)pos.y, piece, board.FindPiece((int)pos.x, (int)pos.y));
-                    //do the move
-                    boardAfterMove.MovePieceOnBoard(move);
-                    
-                    double evalMove = Evaluate.EvaluatePosition(boardAfterMove, Player);
-                    
-                    if(playerColor == GameColor.Red)
+                    //get all the valid moves of the piece
+                    foreach(Position pos in piece.GetValidMoves(board))
                     {
-                        if(evalMove == bestEval)
-                        {
-                            bestMoves.Add(move);
-                        }
-                        else if(evalMove > bestEval)
-                        {
-                            bestEval = evalMove;
+                        //create clone to save the board before
+                        Move move = new Move(piece.GetX(), piece.GetY(), pos.x, pos.y, piece, board.FindPiece(pos.x, pos.y));
 
-                            //clear the list and add the new best move
+                        //do the move on the clone
+                        copyBoard.MovePieceOnBoard(move);
+                        
+                        //evaluate the move
+                        double evalMove = Evaluate.EvaluateMove(copyBoard, Player, bestEval, copyBoard.GetGameState());
+                        //if the player is red, so the best move is the one with the highest evaluation
+                        //if the player is black, so the best move is the one with the lowest evaluation
+                        if ((playerColor == GameColor.Red && evalMove > bestEval) || (playerColor == GameColor.Black && evalMove < bestEval))
+                        {
                             bestMoves.Clear();
-                            bestMoves.Add(move);
-                        }
-                    }
-                    else
-                    {
-                        if(evalMove == bestEval)
-                        {
-                            bestMoves.Add(move);
-                        }
-                        else if(evalMove < bestEval)
-                        {
                             bestEval = evalMove;
-                            
-                            //clear the list and add the new best move
-                            bestMoves.Clear();
+                        }
+                        //if the evaluation of the move is really close to the best evaluation, add it to the best moves list
+                        if(evalMove == bestEval) //(Math.Abs(evalMove - bestEval) < tolerance)
+                        {
                             bestMoves.Add(move);
                         }
-                    }
 
-                    boardAfterMove.UndoLastMove();
-                }
-            } 
+                        copyBoard.UndoLastMove();
+                    }
+                } 
+            }
         }
+        print("time took to move: " + (DateTime.Now - start).TotalSeconds + " function calls: " + o);
+        
         int randomIndex = Random.Range(0, bestMoves.Count);
         return bestMoves[randomIndex];
     } 

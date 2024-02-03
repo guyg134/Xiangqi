@@ -1,7 +1,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Numerics;
+using System.Runtime.InteropServices;
 
 
 
@@ -13,11 +15,14 @@ public class Board
     private BitBoard bitBoard;
     private Stack<Move> movesSave;
 
+    private GameState gameState;
+
     public Board()
     {
         board = new Dictionary<PieceType, List<Piece>>();
         movesSave = new Stack<Move>();
         bitBoard = null;
+        gameState = GameState.Opening;
     }
 
     public Board(Board otherBoard)
@@ -26,6 +31,7 @@ public class Board
         this.board = CloneBoard(otherBoard.GetDictionary());
         this.movesSave = new Stack<Move>(otherBoard.movesSave);
         this.bitBoard = new BitBoard(otherBoard.bitBoard);
+        this.gameState = otherBoard.gameState;
     }
 
     public void SetBitBoard()
@@ -106,7 +112,6 @@ public class Board
             }
         }
         
-
         return null;
     }
     
@@ -202,18 +207,78 @@ public class Board
         return validMoves;  
     }
 
+    public GameState GetGameState()
+    {
+        //check if the game state is opening and if it is, check if it is middle game
+        if(gameState == GameState.Opening && IsMiddle())
+        {
+            gameState = GameState.MiddleGame;
+        }
+        //check if the game state is middle game and if it is, check if it is end game
+        else if(gameState == GameState.MiddleGame && IsEndgame())
+        {
+            gameState = GameState.EndGame;
+        }
+
+        return gameState;
+    }
+
+    private bool IsMiddle()
+    {
+        bool knightMove = false;
+        bool soldierMove = false;
+        bool cannonMove = false;
+
+        for(int i = 0; i < board[PieceType.Knight].Count && !knightMove; i++)
+        {
+            knightMove |= PieceType.Knight.PieceTypeStartingPos(board[PieceType.Knight][i].GetPos());
+        }
+        for(int i = 0; i < board[PieceType.Soldier].Count && !soldierMove; i++)
+        {
+            soldierMove |= PieceType.Soldier.PieceTypeStartingPos(board[PieceType.Soldier][i].GetPos());
+        }
+        for(int i = 0; i < board[PieceType.Cannon].Count && !cannonMove; i++)
+        {
+            cannonMove |= PieceType.Cannon.PieceTypeStartingPos(board[PieceType.Cannon][i].GetPos());
+        }
+        return movesSave.Count > 16 && knightMove && soldierMove && cannonMove;
+    }
+
+    private bool IsEndgame()
+    {
+        int redPieces = 0;
+        int blackPieces = 0;
+
+        //O(n) - n is the number of pieces = 32 max
+        foreach(PieceType pieceType in board.Keys)
+        {
+            foreach(Piece piece in board[pieceType])
+            {
+                if(piece.GetPieceColor() == GameColor.Red)
+                {
+                    redPieces++;
+                }
+                else
+                {
+                    blackPieces++;
+                }
+            }
+        }
+        //if there is less than 6 pieces of one color and there is more than 50 moves, it is endgame
+        return (redPieces <= 6 || blackPieces <= 6) && movesSave.Count > 50;
+    }
+
     private bool IsKingUnderAttackAfterMove(Move move, GameColor playerColor)
     {
         //create clone to save the board before
         Board boardAfterMove = new Board(this);
         //do the move
         boardAfterMove.MovePieceOnBoard(move);
-
+    
         bool isKingUnderAttackAfterMove = bitBoard.IsCheck(boardAfterMove, playerColor);
-
         boardAfterMove.UndoLastMove();
 
-    
+        SearchMove.o++;
 
         return isKingUnderAttackAfterMove;
     }
