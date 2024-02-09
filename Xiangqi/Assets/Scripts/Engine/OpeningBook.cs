@@ -6,7 +6,7 @@ using UnityEngine;
 public class OpeningBook
 {
 
-    private Tree Root;
+    
     private List<List<string>> openings = new List<List<string>>
         {
         //Central Cannon 8th file Horses VS Screen Horses defence
@@ -20,8 +20,7 @@ public class OpeningBook
         //opening 2
         new List<string> { "C8C5", "J8H7", "A8C7", "J9J8", "A9A8", "G3F3",
          "A2C1", "J2H3", "D7E7", "G1F1", "C2C3", "H3F2", "A1B1", "J3H5",
-          "B1B4", "J1G1", "H7G5", "B4G4", "C7B8", "G4G2", "E7D7", "F1G1",
-          "D7D6", "C1A2", "D6C6", "H2E2", "C5C6", "G2G3", "C6B6", "C3C4"
+          "B1B4", "J1G1"
         }, 
 
         //opening 3
@@ -51,18 +50,7 @@ public class OpeningBook
     // Creates a tree of all the openings
     public OpeningBook()
     {
-        Root = new Tree("Start");
-        foreach (List<string> opening in openings)
-        {
-            
-            TreeNode<string> currentNode = Root.Root;
-            // Add the opening to the tree
-            foreach (string move in opening)
-            {
-                currentNode = Root.AddChild(currentNode, move);
-            }
-            //Root.PrintTree(Root.Root);
-        }
+        
     }
 
     public string GetRandomOpeningMove(List<string> playedMoves)
@@ -95,7 +83,7 @@ public class OpeningBook
         return null;
     }
 
-    private bool IsMoveListMatch(List<string> playedMoves, List<string> opening)
+    public static bool IsMoveListMatch(List<string> playedMoves, List<string> opening)
     {
         if (playedMoves.Count > opening.Count)
         {
@@ -106,5 +94,4 @@ public class OpeningBook
         return playedMoves.All(move => opening.Take(playedMoves.Count).Contains(move));
     }
 
-    
 }

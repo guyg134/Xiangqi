@@ -139,6 +139,16 @@ public class SearchMove : MonoBehaviour
                                     bestEval = evalMove;
                                 }
                             }
+                            //if the move is a draw
+                            else if(copyBoard.IsDraw())
+                            {
+                                evalMove = 0;
+                                if(!bestMoves.Any())
+                                {
+                                    bestMoves.Clear();
+                                    bestEval = evalMove;
+                                }
+                            }
                             else
                             {
                                 bestMoves.Clear();

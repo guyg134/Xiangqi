@@ -14,8 +14,9 @@ public class PieceInput : MonoBehaviour
 
     protected void Click()
     {
+        GameManager gameManager = GameObject.FindWithTag("GameManager").GetComponent<GameManager>();
         //check if the current piece color equal to current player color and the player is human
-        if((int)piece.GetPieceColor() == (int)GameObject.FindWithTag("GameManager").GetComponent<GameManager>().GetTurnColor() && GameObject.FindWithTag("GameManager").GetComponent<GameManager>().GetTurnPlayer().GetType() == typeof(HumanPlayer))
+        if((int)piece.GetPieceColor() == (int)gameManager.GetTurnColor() && gameManager.GetTurnPlayer().GetType() == typeof(HumanPlayer))
         {
             piece.GetDots();
         }

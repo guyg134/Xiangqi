@@ -6,8 +6,8 @@ public class EndgameEvaluation : EvaluationState
     // Weights
     protected const double checkWeight = 2f; 
     protected const double pieceValueDiffWeight = 2; 
-    protected const double playerIntersectionWeight = 0.25f; 
-    protected const double enemyIntersectionWeight = 0.25f; 
+    protected const double playerIntersectionWeight = 0.5f; 
+    protected const double enemyIntersectionWeight = 0.5f; 
     protected const double maxUndefendedPieceValueWeight = 1.2f; 
     protected const double maxAttackingPieceValueWeight = 0.2f;
 

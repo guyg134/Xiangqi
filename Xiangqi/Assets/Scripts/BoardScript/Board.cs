@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
+using UnityEngine;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.WindowsRuntime;
 
@@ -15,13 +16,18 @@ public class Board
     //bitboard
     private BitBoard bitBoard;
     private Stack<Move> movesSave;
+    private Stack<Fen> fenPositionsSave;
 
     private GameState gameState;
 
-    public Board()
+    public Board(Fen fen)
     {
         board = new Dictionary<PieceType, List<Piece>>();
+
         movesSave = new Stack<Move>();
+        fenPositionsSave = new Stack<Fen>();
+        fenPositionsSave.Push(fen);
+
         bitBoard = null;
         gameState = GameState.Opening;
     }
@@ -29,15 +35,28 @@ public class Board
     public Board(Board otherBoard)
     {
         //create clone of the board with different dictionary, list but the same pieces to save time
-        this.board = CloneBoard(otherBoard.GetDictionary());
-        this.movesSave = new Stack<Move>(otherBoard.movesSave);
-        this.bitBoard = new BitBoard(otherBoard.bitBoard);
-        this.gameState = otherBoard.gameState;
+        board = CloneBoard(otherBoard.GetDictionary());
+
+        movesSave = new Stack<Move>(otherBoard.movesSave);
+        fenPositionsSave = new Stack<Fen>(otherBoard.fenPositionsSave);
+
+        bitBoard = new BitBoard(otherBoard.bitBoard);
+        gameState = otherBoard.gameState;
     }
 
     public void SetBitBoard()
     {
-        this.bitBoard = new BitBoard(this);
+        bitBoard = new BitBoard(this);
+    }
+
+    public Fen GetCurrentFen()
+    {
+        return fenPositionsSave.Peek();
+    }
+
+    public int GetFenCount()
+    {
+        return fenPositionsSave.Count;
     }
 
     public Dictionary<PieceType, List<Piece>> GetDictionary()
@@ -95,6 +114,9 @@ public class Board
     private void RemovePiece(Piece removePiece)
     {
         board[removePiece.GetPieceType()].Remove(removePiece);
+        Fen lastFen = fenPositionsSave.Pop();
+        fenPositionsSave.Clear();
+        fenPositionsSave.Push(lastFen);
     }
 
     public int GetPieceCount(PieceType pieceType)
@@ -137,11 +159,13 @@ public class Board
         bitBoard.UpdateBitBoard(move, movingPiece.GetPieceColor());
 
         movesSave.Push(move);
+        fenPositionsSave.Push(fenPositionsSave.Peek().FenAfterMove(move));
     }
 
     public void UndoLastMove()
     {
         Move lastMove = movesSave.Pop();
+        fenPositionsSave.Pop();
 
         int x = lastMove.StartX;
         int y = lastMove.StartY;
@@ -212,26 +236,21 @@ public class Board
     public bool IsRepetitiveMove()
     {
         int repetitions = 0;
-        Stack<Move> movesCopy = new Stack<Move>(movesSave);
-        Move currentMove = movesCopy.Pop();
-
-        for(int i = 0; i < 2; i++)
-        foreach (Move prevMove in movesCopy)
+        Stack<Fen> fenPositionsCopy = new Stack<Fen>(fenPositionsSave);
+        Fen currentFen = fenPositionsCopy.Pop();
+        
+        foreach(Fen fen in fenPositionsCopy)
         {
-            if (currentMove.Equals(prevMove))
+            if(fen.GetFenString() == (currentFen.GetFenString()))
             {
                 repetitions++;
-                if (repetitions >= 3)
-                {
-                    // Disable this pattern from repeating the 4th time
-                    return true;
-                }
             }
-            else
+            if(repetitions > 2)
             {
-                repetitions = 0; // Reset repetitions if the pattern breaks
+                return true;
             }
         }
+        
         return false;
     }
 
@@ -314,6 +333,16 @@ public class Board
     public bool IsCheck(GameColor turnColor)
     {
         return bitBoard.IsCheck(this, turnColor);
+    }
+
+    public bool IsDraw()
+    {
+        return !PiecesForCheckmate() || IsRepetitiveMove();
+    }
+
+    private bool PiecesForCheckmate()
+    {
+        return board[PieceType.Soldier].Count > 1 || board[PieceType.Knight].Count != 0 || board[PieceType.Cannon].Count > 1  || board[PieceType.Rook].Count != 0;
     }
 
     public Dictionary<PieceType, List<Piece>> CloneBoard(Dictionary<PieceType, List<Piece>> cloneBoard)

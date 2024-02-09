@@ -1,4 +1,5 @@
 
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 using UnityEngine;
@@ -6,11 +7,6 @@ using UnityEngine;
 //this class is the game board that keep all the pieces and the positions, create the board and connect with object in the scene
 public class GameBoard : MonoBehaviour
 {
-    
-    //array that keeps all the positions with int that represent the piece and the color
-    //private Piece[,] pieces = new Piece[10, 9];
-    //array that saves all pieces with the index of the type + color * 10
-    //private Piece[] piecesCounter = new Piece[18];
 
     private Board board;
     
@@ -29,10 +25,9 @@ public class GameBoard : MonoBehaviour
         //when player playing black pieces
         string startFenBlack = "RNEAKAENR/9/1C5C1/P1P1P1P1P/9/9/p1p1p1p1p/1c5c1/9/rneakaenr";
 
-        string gameFen = "";
+        string gameFen = playerColor==GameColor.Red ? startFenRed : startFenBlack;
 
-        gameFen = playerColor==GameColor.Red ? startFenRed : startFenBlack;
-        board = new Board();
+        board = new Board(gameFen);
         LoadPositionFromFen(gameFen);
         board.SetBitBoard();
     }
@@ -42,13 +37,6 @@ public class GameBoard : MonoBehaviour
     //get a fen string and set the position of every piece in the positions array
     private void LoadPositionFromFen(string fen) 
     {
-        //change char to the int of specific piece
-        var pieceTypeFromSymbol = new Dictionary<char, PieceType> (){
-            ['k'] = PieceType.King, ['p'] = PieceType.Soldier, ['n'] = PieceType.Knight,
-            ['e'] = PieceType.Elephant, ['c'] = PieceType.Cannon, ['r'] = PieceType.Rook,
-            ['a'] = PieceType.Advisor
-        };
-
         string fenBoard = fen;
         int file = 0, rank = 9;
     
@@ -68,9 +56,9 @@ public class GameBoard : MonoBehaviour
                 //else its digit so its piece
                 else{
                     //find the piece color int by checking if its upper or lower letter
-                    GameColor pieceColor = (char.IsUpper(symbol)) ? GameColor.Red : GameColor.Black;
+                    GameColor pieceColor = char.IsUpper(symbol) ? GameColor.Red : GameColor.Black;
                     //get the piece int by sent the letter to the piecetypefromsymbol 
-                    PieceType pieceType = pieceTypeFromSymbol[char.ToLower(symbol)];
+                    PieceType pieceType = PieceTypeMethods.CharToPieceType(char.ToLower(symbol));
                     
                     Piece currentPiece = uIManager.DrawPiece(file, rank, pieceType, pieceColor);
                     
@@ -127,7 +115,7 @@ public class GameBoard : MonoBehaviour
         //update the piece on the board
         board.MovePieceOnBoard(move);
 
-        //update piece on screen
+        //update piece on screen 
         uIManager.MovePieceInScreen(move.MovingPiece, move);
 
         //check if there is check on the king now
@@ -173,12 +161,7 @@ public class GameBoard : MonoBehaviour
 
     private bool IsDraw()
     {
-        if(board.GetPieceCount(PieceType.Cannon) > 1 || board.GetPieceCount(PieceType.Rook) != 0 || board.GetPieceCount(PieceType.Soldier) > 1 || board.GetPieceCount(PieceType.Knight) != 0)
-        {
-            return false;
-        }
-        
-        return true;
+        return board.IsDraw();
     }
 
 }

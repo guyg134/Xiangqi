@@ -16,6 +16,53 @@ public enum PieceType
 public static class PieceTypeMethods
 {
 
+    public static char PieceTypeToChar(this PieceType pieceType, GameColor gameColor)
+    {
+        //red
+        if(gameColor == GameColor.Black)
+        {
+            return pieceType switch
+            {
+                PieceType.King => 'K',
+                PieceType.Soldier => 'P',
+                PieceType.Knight => 'N',
+                PieceType.Elephant => 'E',
+                PieceType.Cannon => 'C',
+                PieceType.Advisor => 'A',
+                PieceType.Rook => 'R',
+                _ => ' '
+            };
+        }
+        //black
+        return pieceType switch
+        {
+            PieceType.King => 'k',
+            PieceType.Soldier => 'p',
+            PieceType.Knight => 'n',
+            PieceType.Elephant => 'e',
+            PieceType.Cannon => 'c',
+            PieceType.Advisor => 'a',
+            PieceType.Rook => 'r',
+            _ => ' '
+        };
+    }
+
+    public static PieceType CharToPieceType(char pieceChar)
+    {
+        return pieceChar switch
+        {
+            'k' => PieceType.King,
+            'p' => PieceType.Soldier,
+            'n' => PieceType.Knight,
+            'e' => PieceType.Elephant,
+            'c' => PieceType.Cannon,
+            'a' => PieceType.Advisor,
+            'r' => PieceType.Rook,
+            _ => PieceType.King
+        };
+    }
+
+
     public static bool PieceCanAttackKing(this PieceType pieceType)
     {
         return pieceType == PieceType.Soldier || pieceType == PieceType.Knight || pieceType == PieceType.Cannon || pieceType == PieceType.Rook;

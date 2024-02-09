@@ -12,11 +12,11 @@ public class OpeningEvaluation : EvaluationState
     private const double playerIntersectionWeight = 0.45f; 
     private const double enemyIntersectionWeight = 0.45f; 
     private const double maxUndefendedPieceValueWeight = 1f; 
-    private const double maxAttackingPieceValueWeight = 0.1f;
+    private const double maxAttackingPieceValueWeight = 0;
 
     // Piece values
     private const int kingValue = 18700;
-    private const int soliderValue = 100;
+    private const int soliderValue = 0;
     private const int advisorValue = 400;
     private const int elephantValue = 450;
     private const int knightValue = 650;
