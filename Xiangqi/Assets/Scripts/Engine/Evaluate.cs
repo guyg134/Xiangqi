@@ -51,28 +51,25 @@ public class Evaluate
     {
         Board copyBoard = new Board(board);
         
-        for (int i = 1; i < 8; i++)
+        foreach (Piece piece in copyBoard.GetPiecesList())
         {
-            foreach (Piece piece in board.GetPiecesInType((PieceType)i))
-            {
-                if(piece.GetPieceColor() == enemyColor){
-                    List<Position> validMoves = piece.GetValidMoves(copyBoard);
+            if(piece.GetPieceColor() == enemyColor){
+                List<Position> validMoves = piece.GetValidMoves(copyBoard);
 
-                    foreach(Position pos in validMoves)
+                foreach(Position pos in validMoves)
+                {
+                    Move move = new Move(piece.GetX(), piece.GetY(), pos.x, pos.y, piece, board.FindPiece(pos.x, pos.y));
+
+                    copyBoard.MovePieceOnBoard(move);
+
+                    // If after the move, the current player has no legal moves, it's checkmate
+                    if (!copyBoard.PlayerHaveMoves(piece.GetPieceColor().OppositeColor()))
                     {
-                        Move move = new Move(piece.GetX(), piece.GetY(), pos.x, pos.y, piece, board.FindPiece(pos.x, pos.y));
-
-                        copyBoard.MovePieceOnBoard(move);
-
-                        // If after the move, the current player has no legal moves, it's checkmate
-                        if (!copyBoard.PlayerHaveMoves(piece.GetPieceColor().OppositeColor()))
-                        {
-                            copyBoard.UndoLastMove();
-                            return true;
-                        }
-
                         copyBoard.UndoLastMove();
+                        return true;
                     }
+
+                    copyBoard.UndoLastMove();
                 }
             }
         }

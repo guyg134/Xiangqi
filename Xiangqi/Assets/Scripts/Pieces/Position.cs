@@ -18,6 +18,27 @@ public class Position
         this.y = y;
     }
 
+    public override bool Equals(object obj)
+    {
+        if (obj == null || GetType() != obj.GetType())
+        {
+            return false;
+        }
+        var other = (Position)obj;
+        return x == other.x && y == other.y;
+    }
+
+    public override int GetHashCode()
+    {
+        unchecked
+        {
+            int hash = 17;
+            hash = hash * 23 + x.GetHashCode();
+            hash = hash * 23 + y.GetHashCode();
+            return hash;
+        }
+    }
+
     public void ChangeSidePosition()
     {
         //x = 8 - x;

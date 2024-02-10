@@ -61,13 +61,10 @@ public abstract class EvaluationState
         BigInteger playerAttackingBitboard = BitBoard.IntersectionsUnderAttackByColor(board, turnColor);
         BigInteger enemyAttackingBitboard = BitBoard.IntersectionsUnderAttackByColor(board, turnColor.OppositeColor());
 
-        for (int i = 1; i < 8; i++)
+        foreach (Piece piece in board.GetPiecesList())
         {
-            foreach (Piece piece in board.GetPiecesInType((PieceType)i))
-            {
-                UpdateVariables(board, turnColor, piece, playerAttackingBitboard, enemyAttackingBitboard);
-                UpdatePieceIntersectionEvaluateSum(gameState, player, piece);
-            }
+            UpdateVariables(board, turnColor, piece, playerAttackingBitboard, enemyAttackingBitboard);
+            UpdatePieceIntersectionEvaluateSum(gameState, player, piece);
         }
 
         return CalculateEvaluation(turnColor);

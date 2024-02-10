@@ -69,7 +69,7 @@ public abstract class PieceMovement
 
     protected bool ThereIsKingInPos(int x, int y, Board board)
     {
-        return board.FindPiece(x, y, PieceType.King) != null;
+        return board.FindPiece(x, y) != null;
     }
 
     protected bool IsColorOnDownSide()
@@ -111,7 +111,7 @@ public abstract class PieceMovement
                 while(i > 0 && !board.FindPiece(x, i))
                     i--;
                 //if it find king add it to the moves than break
-                if(board.FindPiece(x, i, PieceType.King))
+                if(board.FindPiece(x, i))
                     movesBitboard |= BitBoard.PosToBitInteger(x, i);
             }
             //if down king
@@ -122,7 +122,7 @@ public abstract class PieceMovement
                 while(i < 9 && !board.FindPiece(x, i))
                     i++;
                 //if it find king add it to the moves than break
-                if(board.FindPiece(x, i, PieceType.King))
+                if(board.FindPiece(x, i))
                     movesBitboard |= BitBoard.PosToBitInteger(x, i);
             }
             return movesBitboard;

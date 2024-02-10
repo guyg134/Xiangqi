@@ -103,68 +103,66 @@ public class SearchMove : MonoBehaviour
             bestEval = 1000000000;     
         
         List<Move> bestMoves = new List<Move>();
-        Board board = gameBoard.GetBoard();
+        Board copyBoard = gameBoard.GetBoardCopy();
 
         //iterate through all the pieces
-        for(int i = 1; i < 8; i++)
+        
+        foreach(Piece piece in copyBoard.GetPiecesList())
         {
-            Board copyBoard = new Board(board);
-            foreach(Piece piece in board.GetPiecesInType((PieceType)i))
+            //if the piece is an enemy piece, continue
+            if(piece.GetPieceColor() == playerColor)
             {
-                //if the piece is an enemy piece, continue
-                if(piece.GetPieceColor() == playerColor)
+                //get all the valid moves of the piece
+                foreach(Position pos in piece.GetValidMoves(copyBoard))
                 {
-                    //get all the valid moves of the piece
-                    foreach(Position pos in piece.GetValidMoves(board))
-                    {
-                        //create clone to save the board before
-                        Move move = new Move(piece.GetX(), piece.GetY(), pos.x, pos.y, piece, board.FindPiece(pos.x, pos.y));
+                    //create clone to save the board before
+                    Move move = new Move(piece.GetX(), piece.GetY(), pos.x, pos.y, piece, copyBoard.FindPiece(pos.x, pos.y));
 
-                        //do the move on the clone
-                        copyBoard.MovePieceOnBoard(move);
+                    //do the move on the clone
+                    copyBoard.MovePieceOnBoard(move);
                         
-                        //evaluate the move
-                        double evalMove = Evaluate.EvaluatePosition(copyBoard, Player);
-                        //if the player is red, so the best move is the one with the highest evaluation
-                        //if the player is black, so the best move is the one with the lowest evaluation
-                        if ((playerColor == GameColor.Red && evalMove > bestEval) || (playerColor == GameColor.Black && evalMove < bestEval))
+                    //evaluate the move
+                    double evalMove = Evaluate.EvaluatePosition(copyBoard, Player);
+                    //if the player is red, so the best move is the one with the highest evaluation
+                    //if the player is black, so the best move is the one with the lowest evaluation
+                    if ((playerColor == GameColor.Red && evalMove > bestEval) || (playerColor == GameColor.Black && evalMove < bestEval))
+                    {
+                        //if the move is a checkmate, set the evaluation to the checkmate value
+                        if(Evaluate.CheckMateNextMove(copyBoard, playerColor.OppositeColor()))
                         {
-                            //if the move is a checkmate, set the evaluation to the checkmate value
-                            if(Evaluate.CheckMateNextMove(copyBoard, playerColor.OppositeColor()))
-                            {
-                                evalMove = playerColor == GameColor.Red ? -Evaluate.checkMateValue : Evaluate.checkMateValue;
-                                if(!bestMoves.Any())
-                                {
-                                    bestMoves.Clear();
-                                    bestEval = evalMove;
-                                }
-                            }
-                            //if the move is a draw
-                            else if(copyBoard.IsDraw())
-                            {
-                                evalMove = 0;
-                                if(!bestMoves.Any())
-                                {
-                                    bestMoves.Clear();
-                                    bestEval = evalMove;
-                                }
-                            }
-                            else
+                            evalMove = playerColor == GameColor.Red ? -Evaluate.checkMateValue : Evaluate.checkMateValue;
+                            if(!bestMoves.Any())
                             {
                                 bestMoves.Clear();
                                 bestEval = evalMove;
                             }
                         }
-                        //if the evaluation of the move is really close to the best evaluation, add it to the best moves list
-                        if(Math.Abs(evalMove - bestEval) < tolerance)
+                        //if the move is a draw
+                        else if(copyBoard.IsDraw())
                         {
-                            bestMoves.Add(move);
+                            evalMove = 0;
+                            if(!bestMoves.Any())
+                            {
+                                bestMoves.Clear();
+                                bestEval = evalMove;
+                            }
                         }
-
-                        copyBoard.UndoLastMove();
+                        else
+                        {
+                            bestMoves.Clear();
+                            bestEval = evalMove;
+                        }
                     }
-                } 
-            }
+                    //if the evaluation of the move is really close to the best evaluation, add it to the best moves list
+                    if(Math.Abs(evalMove - bestEval) < tolerance)
+                    {
+                        bestMoves.Add(move);
+                    }
+
+                    copyBoard.UndoLastMove();
+                }
+            } 
+            
         }
         
         int randomIndex = Random.Range(0, bestMoves.Count);

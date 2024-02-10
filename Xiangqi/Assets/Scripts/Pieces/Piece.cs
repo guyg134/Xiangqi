@@ -9,8 +9,7 @@ public class Piece : MonoBehaviour
     
     private PieceType pieceType;
     private GameColor pieceColor;
-    private int x;
-    private int y;
+    private Position pos;
     private PieceMovement pieceMovement;
 
     public void SetPiece(PieceType pieceType, GameColor pieceColor, int x, int y)
@@ -18,31 +17,35 @@ public class Piece : MonoBehaviour
         this.pieceType = pieceType;
         this.pieceColor = pieceColor;
         pieceMovement = PieceFactory.GetPiece(pieceType, pieceColor);
-        this.x = x;
-        this.y = y;
+        pos = new Position(x, y);
         
         gameBoard = FindObjectOfType<GameBoard>();
     }
 
     public int GetX()
     {
-        return x;
+        return pos.x;
     }
 
     public int GetY()
     {
-        return y;
+        return pos.y;
     }
 
     public Position GetPos()
     {
-        return new Position(x, y);
+        return pos;
     }
 
     public void SetPos(int x, int y)
     {
-        this.x = x;
-        this.y = y;
+        pos.x = x;
+        pos.y = y;
+    }
+
+    public void SetPos(Position pos)
+    {
+        this.pos = pos;
     }
 
     public PieceType GetPieceType()
@@ -52,13 +55,13 @@ public class Piece : MonoBehaviour
 
     public BigInteger GetPieceBitboardMove(Board board)
     {
-        return pieceMovement.GetBitboardMoves(x, y, board);
+        return pieceMovement.GetBitboardMoves(pos.x, pos.y, board);
     }
 
     public void MovePiece(Position newPos)
     {
         //create new move with null on the eaten piece that will be add on the gameboard
-        Move move = new Move(x, y, newPos.x, newPos.y, this);
+        Move move = new Move(pos.x, pos.y, newPos.x, newPos.y, this);
         //update the piece in board
         gameBoard.UpdatePieceInBoard(move);
     }

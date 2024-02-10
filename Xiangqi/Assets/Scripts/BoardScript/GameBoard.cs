@@ -86,6 +86,11 @@ public class GameBoard : MonoBehaviour
         return board;
     }
 
+    public Board GetBoardCopy()
+    {
+        return new Board(board);
+    }
+
     public Piece GetPiece(int x, int y)
     {
         return board.FindPiece(x, y);
@@ -93,7 +98,7 @@ public class GameBoard : MonoBehaviour
 
     public bool CheckIfPieceIsKing(int x, int y)
     {
-        return board.FindPiece(x, y, PieceType.King).GetPieceType() == PieceType.King;
+        return board.FindPiece(x, y).GetPieceType() == PieceType.King;
     }
 
     //return if position is in the board borders
