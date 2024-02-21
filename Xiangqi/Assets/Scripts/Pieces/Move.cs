@@ -41,10 +41,7 @@ public class Move
      }
     
 
-    public string Name()
-    {
-        return "" + NumberToLetter(startPosition.y) + (startPosition.x +1) + NumberToLetter(endPosition.y) + (endPosition.x +1);
-    }
+    public string Name => "" + startPosition.Name + endPosition.Name;
 
     public Position PositionStart
     {
@@ -96,22 +93,10 @@ public class Move
 
     public static Move NameToMove(string name)
     {
-        int startX = int.Parse(name[1].ToString()) - 1;
-        int startY = LetterToNumber(name[0]);
-        int endX = int.Parse(name[3].ToString()) - 1;
-        int endY = LetterToNumber(name[2]);
+        Position startPosition = new Position(name.Substring(0, 2));
+        Position endPosition = new Position(name.Substring(2, 2));
 
-        return new Move(startX, startY, endX, endY);
-    }
-
-    private static char NumberToLetter(int number)
-    {
-        return (char)('A' + number);
-    }   
-
-    private static int LetterToNumber(char letter)
-    {
-        return letter - 'A';
+        return new Move(startPosition, endPosition, null, null);
     }
 
     public void ReverseMove()

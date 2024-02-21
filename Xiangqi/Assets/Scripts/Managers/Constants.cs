@@ -7,7 +7,7 @@ public class Constants
     public const int BOARD_HEIGHT = 10;
     public const int CastleSize = 3;
 
-    //game manager constants
+    //game manager constants 
     public const int DownPlayerIndex = 0;
     public const int UpPlayerIndex = 1;
 
