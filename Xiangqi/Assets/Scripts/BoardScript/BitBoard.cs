@@ -182,6 +182,7 @@ public class BitBoard
         {
             if(piece.GetPieceColor() == pieceColor)
             {
+                //here it not checking vaildmoves because it make it a lot slower
                 attackPos |= piece.GetPieceBitboardMove(board);
             }
             
@@ -297,6 +298,17 @@ public class BitBoard
     {
         //O(1)
         return PosToBitInteger(pos.x, pos.y);
+    }
+
+    public static BigInteger PosToBitInteger(List<Position> positions)
+    {
+        BigInteger bitboardOfPositions = 0;
+        foreach(Position pos in positions)
+        {
+            bitboardOfPositions |= PosToBitInteger(pos);
+        }
+
+        return bitboardOfPositions;
     }
 
     public BigInteger BitboardMovesWithoutDefence(BigInteger bitboardMoves, GameColor playerColor)
