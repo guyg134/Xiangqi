@@ -258,7 +258,7 @@ public class Board
         
         foreach(Fen fen in fenPositionsCopy)
         {
-            if(fen.GetFenString() == (currentFen.GetFenString()))
+            if(fen.GetFenString() == currentFen.GetFenString())
             {
                 repetitions++;
             }
@@ -278,7 +278,7 @@ public class Board
         //do the move
         boardAfterMove.MovePieceOnBoard(move);
     
-        bool isKingUnderAttackAfterMove = bitBoard.IsCheck(boardAfterMove, attackingColor);
+        bool isKingUnderAttackAfterMove = boardAfterMove.IsCheck(attackingColor);
         boardAfterMove.UndoLastMove();
 
         SearchMove.o++;
