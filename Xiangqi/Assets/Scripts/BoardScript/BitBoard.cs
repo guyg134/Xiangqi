@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using UnityEngine;
 
-public class BitBoard 
+public class BitBoard : MonoBehaviour
 {
 
     //save the black pieces in bitboard
@@ -26,6 +26,29 @@ public class BitBoard
         blackBitboard = BoardToBitboardByColor(board, GameColor.Black);
     }
 
+    private BigInteger BoardToBitboardByColor(Board board, GameColor pieceColor)
+    {
+        BigInteger bitboard = 0;
+
+        foreach (Piece piece in board.GetPiecesList())
+        {
+            if(piece.GetPieceColor() == pieceColor)
+            {
+                // Set the corresponding bit position based on the piece type
+                BigInteger bitPosition = PosToBit(piece.GetPos());
+                bitboard |= bitPosition;
+
+                if(piece.GetPieceType() == PieceType.King)
+                {
+                    BigInteger mask = bitPosition;
+                    KingsBitboard |= mask;
+                }
+            }
+        }
+                
+        return bitboard;
+    }
+
     public BigInteger GetRedBitboard()
     {
         return redBitboard;
@@ -38,7 +61,7 @@ public class BitBoard
 
     public Position GetKingBitPos(GameColor color)
     {
-        List<Position> positions = BitboardToPosition(color == GameColor.Red ? KingsBitboard & redBitboard : 
+        List<Position> positions = BitboardToPositions(color == GameColor.Red ? KingsBitboard & redBitboard : 
         KingsBitboard & blackBitboard);
         
         if(positions.Count != 1)
@@ -50,15 +73,15 @@ public class BitBoard
 
     public void UpdateBitBoard(Move move, GameColor color)
     {
-        BigInteger bitStartPosition = PosToBitInteger(move.startPosition);
-        BigInteger bitEndPosition = PosToBitInteger(move.endPosition);
+        BigInteger bitStartPosition = PosToBit(move.startPosition);
+        BigInteger bitEndPosition = PosToBit(move.endPosition);
 
         //if its red piece update red Bitboard
         if(color == GameColor.Red)
         {
-            //remove the current position of the piece in the board
             if((bitStartPosition & redBitboard) == 0)
                 throw new System.Exception("The piece is not in the start position");
+            //remove the current position of the piece in the board
             redBitboard ^= bitStartPosition;
     
             //remove black piece from blackbitboard, if eaten
@@ -98,8 +121,8 @@ public class BitBoard
 
     public void UndoMoveBitboard(Move move, GameColor turnColor)
     {
-        BigInteger bitStartPosition = PosToBitInteger(move.startPosition);
-        BigInteger bitEndPosition = PosToBitInteger(move.endPosition);
+        BigInteger bitStartPosition = PosToBit(move.startPosition);
+        BigInteger bitEndPosition = PosToBit(move.endPosition);
 
         //if its red piece update red Bitboard
         if(turnColor == GameColor.Red){
@@ -107,7 +130,7 @@ public class BitBoard
             redBitboard ^= bitEndPosition;
 
             //add the eaten piece to the enemy board(black)
-            if(move.EatenPiece)
+            if(move.EatenPiece != null)
                 blackBitboard |= bitEndPosition;
 
             redBitboard |= bitStartPosition;
@@ -118,7 +141,7 @@ public class BitBoard
             blackBitboard ^= bitEndPosition;
 
             //add the eaten piece to the enemy board(red)
-            if(move.EatenPiece)
+            if(move.EatenPiece != null)
                 redBitboard |= bitEndPosition;
 
             blackBitboard |= bitStartPosition;
@@ -134,6 +157,8 @@ public class BitBoard
 
     public bool IsCheck(Board board, GameColor attackingColor)
     {   
+        //O(1) n- number of pieces(worst = 9), 9 pieces that can attack the king in each color
+
         //get the bitboard of the defending player(the bitboard of pieces with the king)
         BigInteger defendingBitboard = attackingColor == GameColor.Red ? blackBitboard : redBitboard;
         //get the position of the king by & the bitboard of the king and the bitboard color of the king
@@ -141,8 +166,8 @@ public class BitBoard
         
         //go over all the pieces and check if they can attack the king, stop when you find one
         foreach (Piece piece in board.GetPiecesList())
-        {
-            if(piece.GetPieceColor() == attackingColor && (piece.GetPieceBitboardMove(board) & kingPos) != 0)
+        {         
+            if(piece.GetPieceColor() == attackingColor && PieceTypeMethods.PieceCanAttackKing(piece.GetPieceType()) && (piece.GetPieceBitboardMove(board) & kingPos) != 0)
             {
                 return true;
             }
@@ -151,40 +176,25 @@ public class BitBoard
         return false;
     }
 
-    private BigInteger BoardToBitboardByColor(Board board, GameColor pieceColor)
+    public List<Position> PiecesUnderAttackByPiece(Board board, Piece piece)
     {
-        BigInteger bitboard = 0;
+        //O(1) - worth is 172 (time of get valid moves of the piece)
+        BigInteger enemyBitboard = piece.GetPieceColor() == GameColor.Red ? blackBitboard : redBitboard;
+        BigInteger pieceBitboard = PosToBit(piece.GetValidMoves(board));
 
-        foreach (Piece piece in board.GetPiecesList())
-        {
-            if(piece.GetPieceColor() == pieceColor)
-            {
-                // Set the corresponding bit position based on the piece type
-                BigInteger bitPosition = PosToBitInteger(piece.GetPos());
-                bitboard |= bitPosition;
-
-                if(piece.GetPieceType() == PieceType.King)
-                {
-                    BigInteger mask = bitPosition;
-                    KingsBitboard |= mask;
-                }
-            }
-        }
-                
-        return bitboard;
+        return BitboardToPositions(enemyBitboard & pieceBitboard);
     }
 
-    public static BigInteger IntersectionsUnderAttackByColor(Board board, GameColor pieceColor)
+    public static BigInteger IntersectionsUnderAttackByColor(Board board, GameColor attackingColor)
     {
         BigInteger attackPos = 0;
 
         foreach (Piece piece in board.GetPiecesList())
         {
-            if(piece.GetPieceColor() == pieceColor)
+            if(piece.GetPieceColor() == attackingColor)
             {
-                attackPos |= piece.GetPieceBitboardMove(board);
+                attackPos |= PosToBit(piece.GetValidMoves(board));
             }
-            
         }
               
         return attackPos;
@@ -264,7 +274,7 @@ public class BitBoard
 
     }
 
-    public List<Position> BitboardToPosition(BigInteger bitboard)
+    public static List<Position> BitboardToPositions(BigInteger bitboard)
     {
         //O(1)
         int totalBits = 90; // Assuming a 9x10 board
@@ -279,7 +289,19 @@ public class BitBoard
         return positions;
     }
 
-    public static BigInteger PosToBitInteger(int x , int y)
+    public static BigInteger PosToBit(List<Position> positions)
+    {
+        //O(n) n- number of moves
+        BigInteger bitPos = 0;
+        foreach(Position pos in positions)
+        {
+            bitPos |= PosToBit(pos);
+        }
+
+        return bitPos;
+    }
+
+    public static BigInteger PosToBit(int x , int y)
     {
         //O(1)
         BigInteger bitPos = 0;
@@ -293,10 +315,10 @@ public class BitBoard
         return bitPos;
     }
 
-    public static BigInteger PosToBitInteger(Position pos)
+    public static BigInteger PosToBit(Position pos)
     {
         //O(1)
-        return PosToBitInteger(pos.x, pos.y);
+        return PosToBit(pos.x, pos.y);
     }
 
     public BigInteger BitboardMovesWithoutDefence(BigInteger bitboardMoves, GameColor playerColor)

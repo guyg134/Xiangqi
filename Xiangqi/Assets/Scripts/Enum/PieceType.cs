@@ -65,7 +65,7 @@ public static class PieceTypeMethods
 
     public static bool PieceCanAttackKing(this PieceType pieceType)
     {
-        return pieceType == PieceType.Soldier || pieceType == PieceType.Knight || pieceType == PieceType.Cannon || pieceType == PieceType.Rook;
+        return pieceType == PieceType.Soldier || pieceType == PieceType.Knight || pieceType == PieceType.Cannon || pieceType == PieceType.Rook || pieceType == PieceType.King;
     }
 
     // Returns if piece is on starting position

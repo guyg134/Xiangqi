@@ -98,10 +98,7 @@ public class SearchMove : MonoBehaviour
         double bestEval;
         GameColor playerColor = Player.playerColor;
         //set the best evaluation to the lowest possible value if the player is red, and to the highest possible value if the player is black
-        if(playerColor == GameColor.Red)
-            bestEval   = -1000000000;       
-        else
-            bestEval = 1000000000;     
+        bestEval = playerColor == GameColor.Red ? -1000000000 : 1000000000;     
         
         List<Move> bestMoves = new List<Move>();
         Board copyBoard = gameBoard.GetBoardCopy();

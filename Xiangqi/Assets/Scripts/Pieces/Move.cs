@@ -110,4 +110,5 @@ public class Move
     {
         return StartX == move.StartX && StartY == move.StartY && EndX == move.EndX && EndY == move.EndY;
     }
+
 }

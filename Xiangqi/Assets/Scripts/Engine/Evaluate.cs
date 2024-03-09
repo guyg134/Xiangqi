@@ -1,12 +1,9 @@
-using System;
 using System.Collections.Generic;
-using System.Numerics;
-using System.Runtime.InteropServices;
-using UnityEngine;
+
 
 public class Evaluate 
 {
-    public static readonly int checkMateValue = 25000;
+    public static readonly int checkMateValue = 20000;
 
 
     const GameColor red = GameColor.Red;
@@ -42,28 +39,34 @@ public class Evaluate
         {
             return EvaluateNumberByColor(checkMateValue, currentPlayer.playerColor.OppositeColor());
         }
+        if(board.IsDraw())
+        {
+            return 0;
+        }
 
         return EvaluatePosition(board, currentPlayer);
-       
     }
 
     public static bool CheckMateNextMove(Board board, GameColor enemyColor)
     {
+        //O(11 * 10)
         Board copyBoard = new Board(board);
         
+        // Iterate through all the pieces
         foreach (Piece piece in copyBoard.GetPiecesList())
         {
-            if(piece.GetPieceColor() == enemyColor){
+            // If the piece is an enemy piece, do all the valid moves of the piece and check if the player has no legal moves
+            if(piece.GetPieceColor() == enemyColor && PieceTypeMethods.PieceCanAttackKing(piece.GetPieceType())){
                 List<Position> validMoves = piece.GetValidMoves(copyBoard);
 
                 foreach(Position pos in validMoves)
                 {
-                    Move move = new Move(piece.GetX(), piece.GetY(), pos.x, pos.y, piece, board.FindPiece(pos.x, pos.y));
+                    Move move = new Move(piece.GetX(), piece.GetY(), pos.x, pos.y, piece, copyBoard.FindPiece(pos.x, pos.y));
 
                     copyBoard.MovePieceOnBoard(move);
 
                     // If after the move, the current player has no legal moves, it's checkmate
-                    if (!copyBoard.PlayerHaveMoves(piece.GetPieceColor().OppositeColor()))
+                    if (copyBoard.IsCheck(enemyColor) && !copyBoard.PlayerHaveMoves(enemyColor.OppositeColor()))
                     {
                         copyBoard.UndoLastMove();
                         return true;
@@ -83,5 +86,4 @@ public class Evaluate
         return turnColor == red ? eval : -eval;
     }
     
-
 }

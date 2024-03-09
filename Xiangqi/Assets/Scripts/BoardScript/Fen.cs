@@ -34,6 +34,8 @@ public class Fen
 
     public string FenAfterMove(Move move)
     {
+        //O(1)
+        
         //split the fen string to rows
         string[] fenRows = fenString.Split('/');
         //remove the piece from the start position
@@ -48,6 +50,7 @@ public class Fen
 
     private string RemovePieceInFen(string fenRow, int x)
     {
+        //O(9) = O(1)
         char[] newRow = new char[9];
         int currentX = 0;
         //row to array of chars

@@ -1,7 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
+// Purpose: Contains the Position class, which is used to store the position of a piece on the board. Also contains methods to convert between the position and the name of the position (e.g. A1, B2, etc).
 public class Position 
 {
     public int x ;
@@ -39,8 +36,7 @@ public class Position
 
     public void ChangeSidePosition()
     {
-        //x = 8 - x;
+        x = 8 - x;
         y = 9 - y;
     }
-
 }

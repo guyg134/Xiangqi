@@ -74,7 +74,7 @@ public abstract class EvaluationState
     private void UpdateVariables(Board board, GameColor turnColor, Piece piece, BigInteger playerAttackingBitboard, BigInteger enemyAttackingBitboard)
     {
         bool isPlayerPiece = piece.GetPieceColor() == turnColor;
-        BigInteger bitPiecePos = BitBoard.PosToBitInteger(piece.GetPos());
+        BigInteger bitPiecePos = BitBoard.PosToBit(piece.GetPos());
 
         CountersValues(isPlayerPiece, piece.GetPieceType());
 
@@ -109,7 +109,7 @@ public abstract class EvaluationState
             else
             {
                 Piece attackingPiece = MostValuablePiece(attackingPieces);
-                BigInteger attackingPiecePos = BitBoard.PosToBitInteger(attackingPiece.GetPos());
+                BigInteger attackingPiecePos = BitBoard.PosToBit(attackingPiece.GetPos());
                 
                 // If the attacking piece is not under attack by the enemy pieces
                 if((attackingPiecePos & enemyAttackingBitboard) == 0)
@@ -154,7 +154,7 @@ public abstract class EvaluationState
     {
         //if its player king you want to multiply the bonus by -1 to get the negative bonus, if its enemy king you want to multiply the bonus by 1
         int colorMultiplier = isPlayerKing ? -1 : 1;
-        BigInteger attackingPiecePos = BitBoard.PosToBitInteger(piecesAttackingKing[0].GetPos());
+        BigInteger attackingPiecePos = BitBoard.PosToBit(piecesAttackingKing[0].GetPos());
 
         //check if the pieces that attacking the king is more than one and all the pieces are on safe intersections if yes change the check with few pieces bonus
         if(piecesAttackingKing.Count > 1 && PiecesAreOnSafeIntersection(piecesAttackingKing, kingColorAttackingIntersections))
@@ -177,9 +177,9 @@ public abstract class EvaluationState
         bool isPlayerPiece = piece.GetPieceColor() == turnPlayer.playerColor;
         // If the piece is player piece add the piece intersection value to the player pieces intersection evaluate sum, else add it to the enemy pieces intersection evaluate sum
         if(isPlayerPiece)
-            PlayerPiecesIntersectionEvaluateSum += EvaluatePieceIntersectionsTables.GetPieceIntersectionValue(gameState, piece.GetPieceType(), piece.GetX(), piece.GetY(), turnPlayer.playOnDownSide);
+            PlayerPiecesIntersectionEvaluateSum += EvaluatePieceIntersectionsTables.GetPieceIntersectionValue(gameState, piece.GetPieceType(), piece.GetX(), piece.GetY());
         else
-            EnemyPiecesIntersectionEvaluateSum += EvaluatePieceIntersectionsTables.GetPieceIntersectionValue(gameState, piece.GetPieceType(), piece.GetX(), piece.GetY(), !turnPlayer.playOnDownSide);
+            EnemyPiecesIntersectionEvaluateSum += EvaluatePieceIntersectionsTables.GetPieceIntersectionValue(gameState, piece.GetPieceType(), piece.GetX(), piece.GetY());
     }
 
 
@@ -240,7 +240,7 @@ public abstract class EvaluationState
     {
         foreach (Piece piece in pieces)
         {
-            if ((BitBoard.PosToBitInteger(piece.GetPos()) & attackingBitboard) == 0)
+            if ((BitBoard.PosToBit(piece.GetPos()) & attackingBitboard) == 0)
             {
                 return false;
             }
@@ -249,5 +249,3 @@ public abstract class EvaluationState
     }
 
 }
-   
-

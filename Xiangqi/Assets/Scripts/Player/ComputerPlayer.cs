@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 
-public class AiPlayer : Player
+public class ComputerPlayer : Player
 {
     private SearchMove searchMove;
    

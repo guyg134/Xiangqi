@@ -55,6 +55,8 @@ public class Piece : MonoBehaviour
 
     public BigInteger GetPieceBitboardMove(Board board)
     {
+        //O(1)
+        //return the bitboard of the piece moves
         return pieceMovement.GetBitboardMoves(pos.x, pos.y, board);
     }
 
@@ -80,6 +82,7 @@ public class Piece : MonoBehaviour
 
     public List<Position> GetValidMoves(Board board)
     {
+        //O(1)
         BigInteger moves = GetPieceBitboardMove(board);
         return board.GetValidMoves(moves, this);
     }

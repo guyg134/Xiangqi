@@ -37,19 +37,19 @@ public class GameManager : MonoBehaviour
         if(computersPlayers.Length == 2)
         {
             print("Computer vs Computer");
-            players[0] = computersPlayers[0].GetComponent<AiPlayer>();//plays on the down side
-            players[1] = computersPlayers[1].GetComponent<AiPlayer>();//plays on the up side
+            players[0] = computersPlayers[0].GetComponent<ComputerPlayer>();//plays on the down side
+            players[1] = computersPlayers[1].GetComponent<ComputerPlayer>();//plays on the up side
 
-            computersPlayers[0].GetComponent<AiPlayer>().SetPlayer(playerColor, true);
-            computersPlayers[1].GetComponent<AiPlayer>().SetPlayer(playerColor.OppositeColor(), false);
+            computersPlayers[0].GetComponent<ComputerPlayer>().SetPlayer(playerColor, true);
+            computersPlayers[1].GetComponent<ComputerPlayer>().SetPlayer(playerColor.OppositeColor(), false);
         }
         else if(computersPlayers.Length == 1)
         {
             print("Human vs Computer");
             players[0] = new HumanPlayer(playerColor, true);
-            players[1] = computersPlayers[0].GetComponent<AiPlayer>();
+            players[1] = computersPlayers[0].GetComponent<ComputerPlayer>();
 
-            computersPlayers[0].GetComponent<AiPlayer>().SetPlayer(playerColor.OppositeColor(), false);
+            computersPlayers[0].GetComponent<ComputerPlayer>().SetPlayer(playerColor.OppositeColor(), false);
         }
         //no computer players
         else
@@ -112,7 +112,7 @@ public class GameManager : MonoBehaviour
     private void IsAiTurn()
     {
         //if the current player is ai tell him its his turn
-        AiPlayer currentPlayer = GetTurnPlayer() as AiPlayer;
+        ComputerPlayer currentPlayer = GetTurnPlayer() as ComputerPlayer;
         if(currentPlayer != null)
         {
             currentPlayer.YourTurn();
