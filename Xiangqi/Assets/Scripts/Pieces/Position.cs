@@ -17,27 +17,25 @@ public class Position
         this.x = x;
         this.y = y;
     }
-
-    public override bool Equals(object obj)
+    public Position(string name)
     {
-        if (obj == null || GetType() != obj.GetType())
-        {
-            return false;
-        }
-        var other = (Position)obj;
-        return x == other.x && y == other.y;
+        y = LetterToNumber(name[0]);
+        x = int.Parse(name[1].ToString()) - 1;
     }
 
-    public override int GetHashCode()
+    public string Name => "" + NumberToLetter(y) + (x + 1);
+
+
+    private static char NumberToLetter(int number)
     {
-        unchecked
-        {
-            int hash = 17;
-            hash = hash * 23 + x.GetHashCode();
-            hash = hash * 23 + y.GetHashCode();
-            return hash;
-        }
+        return (char)('A' + number);
+    }   
+
+    private static int LetterToNumber(char letter)
+    {
+        return letter - 'A';
     }
+    
 
     public void ChangeSidePosition()
     {

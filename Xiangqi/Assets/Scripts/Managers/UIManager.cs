@@ -69,7 +69,7 @@ public class UIManager : MonoBehaviour
     public void MovePieceInScreen(Piece piece, Move move)
     {
         piece.gameObject.transform.position = PositionToVector2(move.EndX, move.EndY);
-        AddMoveToMovesGrid(move.Name());
+        AddMoveToMovesGrid(move.Name);
     }
 
     //add new move to the moves grid in the game and set the 

@@ -14,6 +14,7 @@ public class SearchMove : MonoBehaviour
     Player Player;
     private static OpeningBook openingBook;
 
+    [Range(0f, 1f)]
     [SerializeField] private float timeForMove = 0;
     [SerializeField] private bool doRandomMove = false;
 
@@ -131,9 +132,9 @@ public class SearchMove : MonoBehaviour
                         if(Evaluate.CheckMateNextMove(copyBoard, playerColor.OppositeColor()))
                         {
                             evalMove = playerColor == GameColor.Red ? -Evaluate.checkMateValue : Evaluate.checkMateValue;
+                            //if the best moves list is empty, set the best evaluation to the evaluation of checkmate
                             if(!bestMoves.Any())
                             {
-                                bestMoves.Clear();
                                 bestEval = evalMove;
                             }
                         }
@@ -141,12 +142,13 @@ public class SearchMove : MonoBehaviour
                         else if(copyBoard.IsDraw())
                         {
                             evalMove = 0;
+                            //if the best moves list is empty, set the best evaluation to the evaluation of Draw
                             if(!bestMoves.Any())
                             {
-                                bestMoves.Clear();
                                 bestEval = evalMove;
                             }
                         }
+                        //if the move is not a checkmate or a draw and it better than the best move, set the best evaluation to the evaluation of the move
                         else
                         {
                             bestMoves.Clear();

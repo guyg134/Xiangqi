@@ -13,7 +13,7 @@ using System.Linq;
 public class Board
 {
     //private Dictionary<PieceType, List<Piece>> board;
-    private Dictionary<Position, Piece> board;
+    private Dictionary<string, Piece> board;
     private Dictionary<PieceType, int> pieceCount;
     //bitboard
     private BitBoard bitBoard;
@@ -25,8 +25,10 @@ public class Board
     public Board(Fen fen)
     {
         //board = new Dictionary<PieceType, List<Piece>>();
-        board = new Dictionary<Position, Piece>();
-        pieceCount = new Dictionary<PieceType, int>{{PieceType.King, 0},{PieceType.Soldier, 0}, {PieceType.Knight, 0}, {PieceType.Elephant, 0}, {PieceType.Cannon, 0}, {PieceType.Advisor, 0}, {PieceType.Rook, 0}};
+        board = new Dictionary<string, Piece>();
+        pieceCount = new Dictionary<PieceType, int>{{PieceType.King, 0},{PieceType.Soldier, 0},
+         {PieceType.Knight, 0}, {PieceType.Elephant, 0}, {PieceType.Cannon, 0},
+          {PieceType.Advisor, 0}, {PieceType.Rook, 0}};
 
         movesSave = new Stack<Move>();
         fenPositionsSave = new Stack<Fen>();
@@ -49,6 +51,16 @@ public class Board
         gameState = otherBoard.gameState;
     }
 
+    public Fen GetFen()
+    {
+        return fenPositionsSave.Peek();
+    }
+
+    public int GetFenLength()
+    {
+        return fenPositionsSave.Count;
+    }
+
     public void SetBitBoard()
     {
         bitBoard = new BitBoard(this);
@@ -59,16 +71,6 @@ public class Board
         return board.Values.ToList();
     }
 
-    public Fen GetCurrentFen()
-    {
-        return fenPositionsSave.Peek();
-    }
-
-    public int GetFenCount()
-    {
-        return fenPositionsSave.Count;
-    }
-
     public GameState GetGameState()
     {
         int moveCount = movesSave.Count;
@@ -76,46 +78,101 @@ public class Board
         return gameState;
     }
 
+    //add new piece to the board
     public void AddPiece(Piece piece)
     {
         try{
-            board.Add(piece.GetPos(), piece);
+            board.Add(piece.GetPos().Name, piece);
+            pieceCount[piece.GetPieceType()]++;
         }
         catch (ArgumentException)
         {
-            //if there is piece, eat it and add the new piece
-            EatPiece(board[piece.GetPos()]);
-            board.Add(piece.GetPos(), piece);
+            throw new System.Exception("There is already a piece in position: " + piece.GetPos().x + " " + piece.GetPos().y);
         }
-        pieceCount[piece.GetPieceType()]++;
-        /*PieceType pieceType = piece.GetPieceType();
+    }
 
-        if(!board.ContainsKey(pieceType))
+    private void RemovePiece(Piece piece)
+    {
+        try{
+            board.Remove(piece.GetPos().Name);
+            pieceCount[piece.GetPieceType()]--;
+        }
+        catch (KeyNotFoundException)
         {
-            List<Piece> piecesList = new List<Piece>();
-            board.Add(pieceType, piecesList);
+            throw new System.Exception("There is no piece in position: " + piece.GetPos().x + " " + piece.GetPos().y);
         }
-
-        board[pieceType].Add(piece);*/
     }
 
     private void EatPiece(Piece removePiece)
     {
         //remove
-        board.Remove(removePiece.GetPos());
-        pieceCount[removePiece.GetPieceType()]--;
+        RemovePiece(removePiece);
 
-        //board[removePiece.GetPieceType()].Remove(removePiece);
+        //clear the all positions save because the board cant be the same
         Fen lastFen = fenPositionsSave.Pop();
         fenPositionsSave.Clear();
         fenPositionsSave.Push(lastFen);
+    }
+
+    public void MovePieceOnBoard(Move move)
+    {
+        //find the pieces
+        Piece movingPiece = move.MovingPiece;
+        Piece eatenPiece = move.EatenPiece;
+        
+        //remove the piece from the board
+        RemovePiece(movingPiece);
+        //moving the piece
+        movingPiece.SetPos(move.endPosition);
+
+        //remove the eaten piece from the board, if there is
+        if(eatenPiece)
+        {
+            EatPiece(eatenPiece);
+        }
+
+        //add the piece to the new position
+        AddPiece(movingPiece);
+
+        //update the bitboard
+        bitBoard.UpdateBitBoard(move, movingPiece.GetPieceColor());
+
+        movesSave.Push(move);
+        //save the fen after the move
+        fenPositionsSave.Push(fenPositionsSave.Peek().FenAfterMove(move));
+    }
+
+    public void UndoLastMove()
+    {
+        //get the last move, and remove the move and the fen from the stacks
+        Move lastMove = movesSave.Pop();
+        fenPositionsSave.Pop();
+
+        //find the piece
+        Piece movingPiece = lastMove.MovingPiece;
+        Piece eatenPiece = lastMove.EatenPiece;
+
+        //remove the piece from the board
+        RemovePiece(movingPiece);
+        //moving the piece
+        movingPiece.SetPos(lastMove.startPosition);
+
+        //if there is eaten piece add it to board
+        if(eatenPiece)
+        {
+            AddPiece(eatenPiece);
+        }
+
+        AddPiece(movingPiece);
+
+        bitBoard.UndoMoveBitboard(lastMove, movingPiece.GetPieceColor());
     }
 
     public Piece FindPiece(Position pos)
     {
         try
         {
-            return board[pos];
+            return board[pos.Name];
         }
         catch (KeyNotFoundException)
         {
@@ -126,24 +183,13 @@ public class Board
     {
         try
         {
-            return board[new Position(x, y)];
+            return board[new Position(x, y).Name];
         }
         catch (KeyNotFoundException)
         {
             return null;
         }
     
-        /*foreach(PieceType pieceType in board.Keys)
-        {
-            foreach(Piece piece in board[pieceType])
-            {
-                if(piece.GetX() == x && piece.GetY() == y)
-                {
-                    return piece;
-                }
-            }
-        }
-        return null;*/
     }
 
     public int GetPieceCount(PieceType pieceType)
@@ -154,66 +200,6 @@ public class Board
     public Piece FindKing(GameColor gameColor)
     {
         return FindPiece(bitBoard.GetKingBitPos(gameColor));
-
-        /*List<Piece> kings = board[PieceType.King];
-        foreach (Piece king in kings)
-        {
-            if (king.GetPieceColor() == gameColor)
-            {
-                return king;
-            }
-        }
-        
-        return null;*/
-    }
-    
-    public void MovePieceOnBoard(Move move)
-    {
-
-        //find the pieces
-        Piece movingPiece = move.MovingPiece;
-        Piece eatenPiece = move.EatenPiece;
-        
-        //moving the piece
-        board.Remove(move.startPosition);
-        movingPiece.SetPos(move.endPosition);
-
-        if(eatenPiece)
-        {
-            EatPiece(eatenPiece);
-        }
-
-        AddPiece(movingPiece);
-
-        bitBoard.UpdateBitBoard(move, movingPiece.GetPieceColor());
-
-        movesSave.Push(move);
-        fenPositionsSave.Push(fenPositionsSave.Peek().FenAfterMove(move));
-    }
-
-    public void UndoLastMove()
-    {
-        Move lastMove = movesSave.Pop();
-        fenPositionsSave.Pop();
-
-        int x = lastMove.StartX;
-        int y = lastMove.StartY;
-
-        //find the piece
-        Piece movingPiece = lastMove.MovingPiece;
-        Piece eatenPiece = lastMove.EatenPiece;
-
-        //moving the piece
-        board.Remove(movingPiece.GetPos());
-        //moving the piece
-        movingPiece.SetPos(x, y);
-
-        if(eatenPiece)
-        {
-            AddPiece(eatenPiece);
-        }
-
-        bitBoard.UndoMoveBitboard(lastMove, movingPiece.GetPieceColor());
     }
 
     public List<string> GetMovesList(bool isRedPlayerDown)
@@ -232,7 +218,7 @@ public class Board
                 move.ChangeSide();
 
             // Add the move name to movesList
-            movesList.Add(move.Name());
+            movesList.Add(move.Name);
         }
 
         return movesList;
@@ -312,18 +298,19 @@ public class Board
 
     private bool PiecesForCheckmate()
     {
-        return pieceCount[PieceType.Soldier] > 1 || pieceCount[PieceType.Knight] != 0 || pieceCount[PieceType.Cannon] > 1  || pieceCount[PieceType.Rook] != 0;
+        return pieceCount[PieceType.Soldier] > 1 || pieceCount[PieceType.Knight] != 0 || 
+        pieceCount[PieceType.Cannon] > 1  || pieceCount[PieceType.Rook] != 0;
     }
 
-    public Dictionary<Position, Piece> CloneBoard(Dictionary<Position, Piece> cloneBoard)
+    public Dictionary<string, Piece> CloneBoard(Dictionary<string, Piece> cloneBoard)
     {
         // Create a new instance of the Board
-        Dictionary<Position, Piece> newBoard = new Dictionary<Position, Piece>();
+        Dictionary<string, Piece> newBoard = new Dictionary<string, Piece>();
 
         // Deep clone the dictionary
         foreach (var entry in cloneBoard)
         {
-            Position pos = entry.Key;
+            string pos = entry.Key;
             Piece piece = entry.Value;
 
             // Add the cloned list to the cloned dictionary

@@ -119,6 +119,8 @@ public class GameBoard : MonoBehaviour
 
         //update the piece on the board
         board.MovePieceOnBoard(move);
+        print("fen: " + board.GetFen() + " fen length: " + board.GetFenLength());
+        board.GetFen();
 
         //update piece on screen 
         uIManager.MovePieceInScreen(move.MovingPiece, move);
