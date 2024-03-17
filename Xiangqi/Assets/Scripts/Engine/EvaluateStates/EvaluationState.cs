@@ -156,6 +156,11 @@ public abstract class EvaluationState
         int colorMultiplier = isPlayerKing ? -1 : 1;
         BigInteger attackingPiecePos = BitBoard.PosToBitInteger(piecesAttackingKing[0].GetPos());
 
+        if(!board.PlayerHaveMoves(king.GetPieceColor()))
+        {
+            CheckBonus += Evaluate.checkMateValue;
+        }
+        
         //check if the pieces that attacking the king is more than one and all the pieces are on safe intersections if yes change the check with few pieces bonus
         if(piecesAttackingKing.Count > 1 && PiecesAreOnSafeIntersection(piecesAttackingKing, kingColorAttackingIntersections))
         {

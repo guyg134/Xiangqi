@@ -12,29 +12,6 @@ public class Evaluate
     const GameColor red = GameColor.Red;
     const GameColor black = GameColor.Black;
 
-
-    public static double EvaluatePosition(Board board, Player currentPlayer)
-    {
-        GameState gameState = board.GetGameState();
-        GameColor turnColor = currentPlayer.playerColor;
-
-        // If there is no moves for the player or the enemy return checkmate value
-        if (!board.PlayerHaveMoves(turnColor))
-        {
-            return EvaluateNumberByColor(checkMateValue, turnColor.OppositeColor());
-        }
-        if(!board.PlayerHaveMoves(turnColor.OppositeColor()))
-        {
-            return EvaluateNumberByColor(checkMateValue, turnColor);
-        }
-        
-        // Get the evaluation state for the current game state
-        EvaluationState evaluateState = EvaluationState.GetEvaluationState(gameState);
-
-        // Calculate the evaluation
-        return evaluateState.EvaluateState(board, gameState, currentPlayer);
-    }
-
     //evaluate the current position and return the evaluate value (for the eval bar)
     public static double EvaluateCurrentPosition(Board board, Player currentPlayer)
     {
@@ -81,6 +58,28 @@ public class Evaluate
     public static double EvaluateNumberByColor(double eval, GameColor turnColor)
     {
         return turnColor == red ? eval : -eval;
+    }
+    
+    public static double EvaluatePosition(Board board, Player currentPlayer)
+    {
+        GameState gameState = board.GetGameState();
+        GameColor turnColor = currentPlayer.playerColor;
+
+        // If there is no moves for the player or the enemy return checkmate value
+        if (!board.PlayerHaveMoves(turnColor))
+        {
+            return EvaluateNumberByColor(checkMateValue, turnColor.OppositeColor());
+        }
+        if(!board.PlayerHaveMoves(turnColor.OppositeColor()))
+        {
+            return EvaluateNumberByColor(checkMateValue, turnColor);
+        }
+        
+        // Get the evaluation state for the current game state
+        EvaluationState evaluateState = EvaluationState.GetEvaluationState(gameState);
+
+        // Calculate the evaluation
+        return evaluateState.EvaluateState(board, gameState, currentPlayer);
     }
     
 
