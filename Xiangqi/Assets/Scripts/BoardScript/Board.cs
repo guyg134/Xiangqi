@@ -224,26 +224,26 @@ public class Board
         return movesList;
     }
 
-    public List<Position> GetValidMoves(BigInteger dotsBitboard, Piece piece)
+    public List<Position> GetValidMoves(BigInteger movesBitboard, Piece piece)
     {
         //delete all the positions that have piece with the same color of this piece
-        dotsBitboard = bitBoard.BitboardMovesWithoutDefence(dotsBitboard, piece.GetPieceColor());
+        movesBitboard = bitBoard.BitboardMovesWithoutDefence(movesBitboard, piece.GetPieceColor());
 
         //change the bitboard moves to position positions
-        List<Position> dotsPos = bitBoard.BitboardToPosition(dotsBitboard);
+        List<Position> movesPos = bitBoard.BitboardToPosition(movesBitboard);
 
         //save the valids moves
         List<Position> validMoves = new List<Position>();
-        //create dots for every position
-        foreach(Position dotPos in dotsPos)
+        //check for each move if its valid
+        foreach(Position movePos in movesPos)
         {
-            Move move = new Move(piece.GetX(), piece.GetY(), dotPos.x, dotPos.y, piece, FindPiece(dotPos.x, dotPos.y));
+            Move move = new Move(piece.GetPos(), movePos, piece, FindPiece(movePos));
             bool isCheckAfterThisMove = IsKingUnderAttackAfterMove(move, piece.GetPieceColor().OppositeColor());
             
             //if there is no check after the move add the move to the valids moves list
             if(!isCheckAfterThisMove)
             {
-                validMoves.Add(dotPos);
+                validMoves.Add(movePos);
             }
             
         }

@@ -19,4 +19,19 @@ public class Constants
     public const int MaxRepiteMoves = 2;
     public const int OpeningMinMoves = 16;
     public const int MiddleGameMinMoves = 60;
+
+}
+
+public class EvaluateConstants
+{
+    public const int kingValue = 18700;
+    public const int soliderValue = 300;
+    public const int advisorValue = 400;
+    public const int elephantValue = 450;
+    public const int knightValue = 600;
+    public const int cannonValue = 650;
+    public const int rookValue = 800;
+
+    public static readonly int[] PieceValues = new int[8] {0, kingValue, soliderValue, knightValue, elephantValue, cannonValue, advisorValue, rookValue};
+
 }

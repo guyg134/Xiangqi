@@ -142,7 +142,8 @@ public class BitBoard
         //go over all the pieces and check if they can attack the king, stop when you find one
         foreach (Piece piece in board.GetPiecesList())
         {
-            if(piece.GetPieceColor() == attackingColor && (piece.GetPieceBitboardMove(board) & kingPos) != 0)
+            //if the piece is on the attacking side and the piece can attack the king and its attacking the king, return true
+            if(piece.GetPieceColor() == attackingColor && PieceTypeMethods.PieceCanAttackKing(piece.GetPieceType()) && (piece.GetPieceBitboardMove(board) & kingPos) != 0)
             {
                 return true;
             }
