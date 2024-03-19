@@ -39,7 +39,7 @@ public class Evaluate
         UnderAttackPlayer = 0;
         UnderAttackEnemy = 0;
     }
-
+    
     //evaluate the current position and return the evaluate value (for the eval bar)
     public double EvaluateCurrentPosition(Board board, Player currentPlayer)
     {
