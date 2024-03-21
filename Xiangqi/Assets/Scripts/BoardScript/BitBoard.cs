@@ -10,6 +10,11 @@ public class BitBoard
     //save the red pieces in bitboard
     private BigInteger redBitboard = 0;
 
+    //save the attacking squares by red and black for the current position
+    private BigInteger attackingSquaresByRed;
+    private BigInteger attackingSquaresByBlack;
+
+    //save the kings position in bitboard
     private BigInteger KingsBitboard = 0;
 
 
@@ -17,23 +22,31 @@ public class BitBoard
     {
         redBitboard = bitBoard.redBitboard;
         blackBitboard = bitBoard.blackBitboard;
+
+        attackingSquaresByRed = bitBoard.attackingSquaresByRed;
+        attackingSquaresByBlack = bitBoard.attackingSquaresByBlack;
+
         KingsBitboard = bitBoard.KingsBitboard;
     }
 
     public BitBoard(Board board)
     {
+        //save the red and black pieces in bitboard
         redBitboard = BoardToBitboardByColor(board, GameColor.Red);
         blackBitboard = BoardToBitboardByColor(board, GameColor.Black);
+
+        //save the attacking squares by red and black for the current position
+        UpdateAttackingSquares(board);
     }
 
-    public BigInteger GetRedBitboard()
+    public BigInteger GetBitboardByColor(GameColor color)
     {
-        return redBitboard;
+        return color == GameColor.Red ? redBitboard : blackBitboard;
     }
 
-    public BigInteger GetBlackBitboard()
+    public BigInteger GetAttackingSquaresByColor(GameColor color)
     {
-        return blackBitboard;
+        return color == GameColor.Red ? attackingSquaresByRed : attackingSquaresByBlack;
     }
 
     public Position GetKingBitPos(GameColor color)
@@ -48,7 +61,7 @@ public class BitBoard
         return positions[0];
     }
 
-    public void UpdateBitBoard(Move move, GameColor color)
+    public void UpdateBitBoard(Board board, Move move, GameColor color)
     {
         BigInteger bitStartPosition = PosToBitInteger(move.startPosition);
         BigInteger bitEndPosition = PosToBitInteger(move.endPosition);
@@ -94,6 +107,9 @@ public class BitBoard
             KingsBitboard ^= bitStartPosition;
             KingsBitboard |= bitEndPosition;
         }
+
+        //update attacking squares
+        UpdateAttackingSquares(board);
     }
 
     public void UndoMoveBitboard(Move move, GameColor turnColor)
@@ -132,24 +148,21 @@ public class BitBoard
         }
     }
 
+    public void UpdateAttackingSquares(Board board)
+    {
+        attackingSquaresByRed = SquaresUnderAttackByColor(board, GameColor.Red);
+        attackingSquaresByBlack = SquaresUnderAttackByColor(board, GameColor.Black);
+    }
+
     public bool IsCheck(Board board, GameColor attackingColor)
     {   
         //get the bitboard of the defending player(the bitboard of pieces with the king)
         BigInteger defendingBitboard = attackingColor == GameColor.Red ? blackBitboard : redBitboard;
         //get the position of the king by & the bitboard of the king and the bitboard color of the king
         BigInteger kingPos = KingsBitboard & defendingBitboard;
-        
-        //go over all the pieces and check if they can attack the king, stop when you find one
-        foreach (Piece piece in board.GetPiecesList())
-        {
-            //if the piece is on the attacking side and the piece can attack the king and its attacking the king, return true
-            if(piece.GetPieceColor() == attackingColor && PieceTypeMethods.PieceCanAttackKing(piece.GetPieceType()) && (piece.GetPieceBitboardMove(board) & kingPos) != 0)
-            {
-                return true;
-            }
-        }
-       
-        return false;
+
+        //if the king is under attack return true
+        return ((attackingColor == GameColor.Red ? attackingSquaresByRed : attackingSquaresByBlack) & kingPos) != 0;
     }
 
     private BigInteger BoardToBitboardByColor(Board board, GameColor pieceColor)
@@ -175,7 +188,7 @@ public class BitBoard
         return bitboard;
     }
 
-    public static BigInteger IntersectionsUnderAttackByColor(Board board, GameColor pieceColor)
+    public BigInteger SquaresUnderAttackByColor(Board board, GameColor pieceColor)
     {
         BigInteger attackPos = 0;
 
@@ -266,7 +279,7 @@ public class BitBoard
 
     }
 
-    public List<Position> BitboardToPosition(BigInteger bitboard)
+    public static List<Position> BitboardToPosition(BigInteger bitboard)
     {
         //O(1)
         int totalBits = 90; // Assuming a 9x10 board
@@ -322,4 +335,20 @@ public class BitBoard
         return (bitboardMoves|blackBitboard) ^  blackBitboard;
     }
 
+    public static BigInteger GetCastleBitboard(bool isDownSide)
+    {
+        int startY = isDownSide ? 0 : 7;
+        BigInteger castleBitboard = 0;
+
+        // Iterate over the 3x3 grid of the castle
+        for (int y = startY; y < startY + 3; y++)
+        {
+            for (int x = 3; x < 6; x++) // Castle is at columns 3, 4, and 5
+            {
+                castleBitboard |= PosToBitInteger(x, y);
+            }
+        }
+
+        return castleBitboard;
+    }
 }

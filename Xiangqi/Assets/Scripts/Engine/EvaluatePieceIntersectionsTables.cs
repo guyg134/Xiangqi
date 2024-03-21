@@ -319,14 +319,14 @@ public class EvaluatePieceIntersectionsTables
         };
     }
 
-    public static float GetPieceIntersectionValue(GameState gameState, PieceType pieceType, int x, int y, bool isDownSide)
+    public static float GetPieceIntersectionValue(GameState gameState, PieceType pieceType, Position pos, bool isDownSide)
     {   
         // Get the piece square value based on the piece type and the position on the board (9 - y because array's y is 0 on top and 9 on bottom)
-        int xTable = x;
-        int yTable = 9 - y;
+        int xTable = pos.x;
+        int yTable = 9 - pos.y;
         if(!isDownSide)
         {
-            xTable = 8 - x;
+            xTable = 8 - pos.x;
             yTable = 9 - yTable;
         }
 

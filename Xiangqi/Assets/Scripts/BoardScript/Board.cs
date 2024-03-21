@@ -135,7 +135,7 @@ public class Board
         AddPiece(movingPiece);
 
         //update the bitboard
-        bitBoard.UpdateBitBoard(move, movingPiece.GetPieceColor());
+        bitBoard.UpdateBitBoard(this, move, movingPiece.GetPieceColor());
 
         movesSave.Push(move);
         //save the fen after the move
@@ -230,7 +230,7 @@ public class Board
         movesBitboard = bitBoard.BitboardMovesWithoutDefence(movesBitboard, piece.GetPieceColor());
 
         //change the bitboard moves to position positions
-        List<Position> movesPos = bitBoard.BitboardToPosition(movesBitboard);
+        List<Position> movesPos = BitBoard.BitboardToPosition(movesBitboard);
 
         //save the valids moves
         List<Position> validMoves = new List<Position>();
@@ -248,6 +248,11 @@ public class Board
             
         }
         return validMoves;  
+    }
+
+    public BigInteger GetAttackingSquaresBitboard(GameColor attackingColor)
+    {
+        return bitBoard.GetAttackingSquaresByColor(attackingColor);
     }
 
     public bool IsRepetitiveMove()
