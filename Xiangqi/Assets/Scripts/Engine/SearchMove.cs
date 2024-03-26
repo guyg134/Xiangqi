@@ -121,15 +121,15 @@ public class SearchMove : MonoBehaviour
 
                     //do the move on the clone
                     copyBoard.MovePieceOnBoard(move);
-                        
+                    Evaluate evaluate = new Evaluate();
                     //evaluate the move
-                    double evalMove = Evaluate.EvaluatePosition(copyBoard, Player);
+                    double evalMove = evaluate.EvaluatePosition(copyBoard, Player);
                     //if the player is red, so the best move is the one with the highest evaluation
                     //if the player is black, so the best move is the one with the lowest evaluation
                     if ((playerColor == GameColor.Red && evalMove > bestEval) || (playerColor == GameColor.Black && evalMove < bestEval))
                     {
                         //if the move is a checkmate, set the evaluation to the checkmate value
-                        if(Evaluate.CheckMateNextMove(copyBoard, playerColor.OppositeColor()))
+                        if(evaluate.CheckMateNextMove(copyBoard, playerColor.OppositeColor()))
                         {
                             evalMove = playerColor == GameColor.Red ? -Evaluate.checkMateValue : Evaluate.checkMateValue;
                             //if the best moves list is empty, set the best evaluation to the evaluation of checkmate

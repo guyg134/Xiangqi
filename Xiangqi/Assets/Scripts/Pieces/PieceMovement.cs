@@ -64,7 +64,7 @@ public abstract class PieceMovement
     //return if the move is in board borders and if after the move there is check so its ilegal
     protected bool InBorders(int x, int y)
     {
-        return GameBoard.CheckIfInBorders(x, y);
+        return Board.InBorders(x, y);
     }
 
     protected bool ThereIsEnemyKingInPos(Position pos, Board board)
@@ -185,7 +185,7 @@ public abstract class PieceMovement
         public override BigInteger GetBitboardMoves(int x, int y, Board board)
         {
             BigInteger movesBitboard = 0;
-
+            
             if(!board.FindPiece(x+1, y))
             {
                 if(InBorders(x+2, y+1))

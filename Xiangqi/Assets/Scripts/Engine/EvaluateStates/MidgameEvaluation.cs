@@ -6,7 +6,7 @@ using UnityEngine;
 
 public class MidgameEvaluation : EvaluationState
 {
-    
+    /*
     // Weights
     protected const double checkWeight = 1.5f; 
     protected const double pieceValueDiffWeight = 2; 
@@ -62,4 +62,5 @@ public class MidgameEvaluation : EvaluationState
         
         return turnColor == GameColor.Red ? eval : -eval;
     }
+    */
 }

@@ -10,7 +10,7 @@ public class Evaluate
     public static readonly int checkMateValue = 25000;
 
     private Player CurrentPlayer;
-    private Board board;
+    private Board CurrentBoard;
 
     // The attacking squares bitboards of the player and the enemy
     private BigInteger playerAttackingBitboard;
@@ -20,11 +20,12 @@ public class Evaluate
     private int ValueDiff;
 
     //pieces counter and pieces value sum for player and enemy
-    private int SafePiecesCounterPlayer;
-    private int SafePiecesCounterEnemy;
+    private int PiecesCounterPlayer;
+    private int PiecesCounterEnemy;
 
-    //under attack pieces value sum of player and enemy
+    //Player pieces that are under attack by the enemy pieces
     private double UnderAttackPlayer;
+    //Enemy pieces that are under attack by the player pieces
     private double UnderAttackEnemy;
 
     //pieces intersection evaluate sum of player and enemy
@@ -43,8 +44,8 @@ public class Evaluate
         //initialzed parameters
         ValueDiff = 0;
 
-        SafePiecesCounterPlayer = 0;
-        SafePiecesCounterEnemy = 0;
+        PiecesCounterPlayer = 0;
+        PiecesCounterEnemy = 0;
 
         UnderAttackPlayer = 0;
         UnderAttackEnemy = 0;
@@ -111,11 +112,12 @@ public class Evaluate
     public double EvaluatePosition(Board board, Player currentPlayer)
     {
         CurrentPlayer = currentPlayer;
+        CurrentBoard = board;
         GameColor turnColor = CurrentPlayer.playerColor;
 
         // Get the bitboards of the attacking squares for each player
-        playerAttackingBitboard = board.GetAttackingSquaresBitboard(turnColor);
-        enemyAttackingBitboard = board.GetAttackingSquaresBitboard(turnColor.OppositeColor());
+        playerAttackingBitboard = BitBoard.IntersectionsUnderAttackByColor(board, turnColor);
+        enemyAttackingBitboard = BitBoard.IntersectionsUnderAttackByColor(board, turnColor.OppositeColor());
 
         foreach (Piece piece in board.GetPiecesList())
         {
@@ -132,6 +134,7 @@ public class Evaluate
             else
             {
                 IsPieceUnderAttack(board, piece);
+                PositionsValue(piece, isPlayerPiece);
             }
         }
 
@@ -175,9 +178,7 @@ public class Evaluate
                     // If the piece is defended by the player pieces but it more variable than the attacking piece
                     else if(underAttack > attackingPiece)
                         UnderAttackPlayer += underAttack - attackingPiece;
-                    // If the piece is defended by the player pieces and the attacking piece is more valuable than the piece, than it's defended
-                    else
-                        SafePiece(piece, isPlayerPiece);
+                    
                 }
             }
             // If its enemy piece
@@ -199,32 +200,25 @@ public class Evaluate
                     // If the piece is defended by the enemy pieces but it more variable than the attacking piece,
                     else if(underAttack > attackingPiece)
                         UnderAttackEnemy += underAttack - attackingPiece;
-                    // If the piece is defended by the player pieces and the attacking piece is more valuable than the piece, than it's defended
-                    else
-                        SafePiece(piece, isPlayerPiece);
+                    
                 }
                 
             }
         }
-        else
-        {
-            // If the piece is not under attack, add the intersection rating of the piece
-            SafePiece(piece, isPlayerPiece);
-        }
     }
 
-    private void SafePiece(Piece piece, bool isPlayerPiece)
+    private void PositionsValue(Piece piece, bool isPlayerPiece)
     {
         // If the piece is not under attack, add the intersection rating of the piece, and add +1 to the safe pieces counter
         if(isPlayerPiece)
         {
-            SafePiecesCounterPlayer++;
+            PiecesCounterPlayer++;
             PlayerPiecesIntersectionEvaluateSum += 
             EvaluatePieceIntersectionsTables.GetPieceIntersectionValue(GameState.MiddleGame, piece.GetPieceType(), piece.GetPos(), CurrentPlayer.playOnDownSide);
         }
         else
         {
-            SafePiecesCounterEnemy++;
+            PiecesCounterEnemy++;
             EnemyPiecesIntersectionEvaluateSum += 
             EvaluatePieceIntersectionsTables.GetPieceIntersectionValue(GameState.MiddleGame, piece.GetPieceType(), piece.GetPos(), !CurrentPlayer.playOnDownSide);
         }
@@ -233,9 +227,9 @@ public class Evaluate
         if(piece.GetPieceType() == PieceType.Knight)
         {
             if(isPlayerPiece)
-                KnightMovesCounterPlayer += BitBoard.BitboardToPosition(piece.GetPieceBitboardMove(board)).Count;
+                KnightMovesCounterPlayer += BitBoard.BitboardToPosition(piece.GetPieceBitboardMove(CurrentBoard)).Count;
             else
-                KnightMovesCounterEnemy += BitBoard.BitboardToPosition(piece.GetPieceBitboardMove(board)).Count;
+                KnightMovesCounterEnemy += BitBoard.BitboardToPosition(piece.GetPieceBitboardMove(CurrentBoard)).Count;
         }
     }
 
@@ -276,13 +270,13 @@ public class Evaluate
 
         // Calcualte the score for the position
         // Add the value difference between the player and the enemy
-        score += ValueDiff * EvaluateConstants.PieceValueDiffWeight;
+        score += (ValueDiff - UnderAttackEnemy * EvaluateConstants.PiecesUnderAttackWeight) * EvaluateConstants.PieceValueDiffWeight;
 
         // Add the value difference of the pieces that are under attack
-        score += (UnderAttackPlayer - UnderAttackEnemy) * EvaluateConstants.PiecesUnderAttackWeight;
+        score += UnderAttackPlayer * EvaluateConstants.PiecesUnderAttackWeight;
 
         // Add the value difference of the avg pieces Intersections rating of pieces that are safe(Dont want to consider pieces differences here, so i use avg)
-        score += ((PlayerPiecesIntersectionEvaluateSum/SafePiecesCounterPlayer) - (EnemyPiecesIntersectionEvaluateSum/SafePiecesCounterEnemy)) 
+        score += ((PlayerPiecesIntersectionEvaluateSum/PiecesCounterPlayer) - (EnemyPiecesIntersectionEvaluateSum/PiecesCounterEnemy)) 
         * EvaluateConstants.PiecesIntersectionsWeight;
 
         // Add the value difference of the knight moves counter

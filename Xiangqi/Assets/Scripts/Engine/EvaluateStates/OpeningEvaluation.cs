@@ -24,7 +24,7 @@ public class OpeningEvaluation : EvaluationState
     private const int rookValue = 900;
 
     public OpeningEvaluation() : base()
-    {
+    {/*
         PieceValues[(int)PieceType.King] = kingValue;
         PieceValues[(int)PieceType.Soldier] = soliderValue;
         PieceValues[(int)PieceType.Advisor] = advisorValue;
@@ -58,6 +58,6 @@ public class OpeningEvaluation : EvaluationState
         eval -= enemyIntersectionWeight * (EnemyPiecesIntersectionEvaluateSum / PiecesCounterEnemy);
         //Debug.Log("PlayerPiecesIntersectionEvaluateSum: " + PlayerPiecesIntersectionEvaluateSum + " EnemyPiecesIntersectionEvaluateSum: " + EnemyPiecesIntersectionEvaluateSum + " eval: " + eval);
 
-        return turnColor == GameColor.Red ? eval : -eval;
+        return turnColor == GameColor.Red ? eval : -eval;*/
     }
 }

@@ -96,7 +96,7 @@ public class GameManager : MonoBehaviour
     public void ChangeTurn()
     {
         //evaluate the current board for the player that just played
-        float eval = (float)Evaluate.EvaluateCurrentPosition(gameBoard.GetBoard(), players[turnInt])/Evaluate.checkMateValue;
+        float eval = 0;//(float)new Evaluate().EvaluateCurrentPosition(gameBoard.GetBoard(), players[turnInt])/Evaluate.checkMateValue;
 
         turnInt ^= 1;
 

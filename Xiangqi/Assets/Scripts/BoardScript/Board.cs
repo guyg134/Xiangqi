@@ -10,7 +10,7 @@ using System.Linq;
 
 
 
-public class Board
+public class Board : MonoBehaviour
 {
     //private Dictionary<PieceType, List<Piece>> board;
     private Dictionary<string, Piece> board;
@@ -135,7 +135,7 @@ public class Board
         AddPiece(movingPiece);
 
         //update the bitboard
-        bitBoard.UpdateBitBoard(this, move, movingPiece.GetPieceColor());
+        bitBoard.UpdateBitBoard(move, movingPiece.GetPieceColor());
 
         movesSave.Push(move);
         //save the fen after the move
@@ -189,6 +189,10 @@ public class Board
         {
             return null;
         }
+        catch (IndexOutOfRangeException)
+        {
+            return null;
+        }
     
     }
 
@@ -199,6 +203,7 @@ public class Board
 
     public Piece FindKing(GameColor gameColor)
     {
+        // Find the king's position and return the piece at that position
         return FindPiece(bitBoard.GetKingBitPos(gameColor));
     }
 
@@ -250,11 +255,6 @@ public class Board
         return validMoves;  
     }
 
-    public BigInteger GetAttackingSquaresBitboard(GameColor attackingColor)
-    {
-        return bitBoard.GetAttackingSquaresByColor(attackingColor);
-    }
-
     public bool IsRepetitiveMove()
     {
         int repetitions = 0;
@@ -282,7 +282,7 @@ public class Board
         Board boardAfterMove = new Board(this);
         //do the move
         boardAfterMove.MovePieceOnBoard(move);
-    
+        //check if the king is under attack after the move
         bool isKingUnderAttackAfterMove = boardAfterMove.IsCheck(attackingColor);
         boardAfterMove.UndoLastMove();
 
@@ -293,7 +293,220 @@ public class Board
 
     public bool IsCheck(GameColor attackingColor)
     {
-        return bitBoard.IsCheck(this, attackingColor);
+        // Find the king's position
+        Piece king = FindKing(attackingColor.OppositeColor());
+        // Save the king's position
+        int x = king.GetX();
+        int y = king.GetY();
+
+        return PawnAttackingKing(x, y, attackingColor) || KnightAttackingKing(x, y, attackingColor) || FileAttackingKing(x, y, attackingColor);
+    }
+
+    private bool PawnAttackingKing(int x, int y, GameColor attackingColor)
+    {
+        if(y < 4)
+        {
+            Piece pawn = FindPiece(x, y + 1);
+            if(pawn && pawn.GetPieceColor() == attackingColor && pawn.GetPieceType() == PieceType.Soldier)
+            {
+                return true;
+            }
+        }
+        else
+        {
+            Piece pawn = FindPiece(x, y - 1);
+            if(pawn && pawn.GetPieceColor() == attackingColor && pawn.GetPieceType() == PieceType.Soldier)
+            {
+                return true;
+            }
+        }
+
+        Piece rightPawn = FindPiece(x + 1, y);
+        Piece leftPawn = FindPiece(x - 1, y);
+        if(rightPawn && rightPawn.GetPieceColor() == attackingColor && rightPawn.GetPieceType() == PieceType.Soldier)
+        {
+            return true;
+        }
+        if(leftPawn && leftPawn.GetPieceColor() == attackingColor && leftPawn.GetPieceType() == PieceType.Soldier)
+        {
+            return true;
+        }
+        return false;
+    }
+
+    private bool KnightAttackingKing(int x, int y, GameColor attackingColor)
+    {
+        Piece knight;
+        if(!FindPiece(x + 1, y + 1))
+        {
+            knight = FindPiece(x + 1, y + 2);
+            if(knight && knight.GetPieceColor() == attackingColor && knight.GetPieceType() == PieceType.Knight)
+            {
+                return true;
+            }
+            knight = FindPiece(x + 2, y + 1);
+            if(knight && knight.GetPieceColor() == attackingColor && knight.GetPieceType() == PieceType.Knight)
+            {
+                return true;
+            }
+        }
+        if(!FindPiece(x - 1, y + 1))
+        {
+            knight = FindPiece(x - 1, y + 2);
+            if(knight && knight.GetPieceColor() == attackingColor && knight.GetPieceType() == PieceType.Knight)
+            {
+                return true;
+            }
+            knight = FindPiece(x - 2, y + 1);
+            if(knight && knight.GetPieceColor() == attackingColor && knight.GetPieceType() == PieceType.Knight)
+            {
+                return true;
+            }
+        }
+        if(!FindPiece(x + 1, y - 1))
+        {
+            knight = FindPiece(x + 1, y - 2);
+            if(knight && knight.GetPieceColor() == attackingColor && knight.GetPieceType() == PieceType.Knight)
+            {
+                return true;
+            }
+            knight = FindPiece(x + 2, y - 1);
+            if(knight && knight.GetPieceColor() == attackingColor && knight.GetPieceType() == PieceType.Knight)
+            {
+                return true;
+            }
+        }
+        if(!FindPiece(x - 1, y - 1))
+        {
+            knight = FindPiece(x - 1, y - 2);
+            if(knight && knight.GetPieceColor() == attackingColor && knight.GetPieceType() == PieceType.Knight)
+            {
+                return true;
+            }
+            knight = FindPiece(x - 2, y - 1);
+            if(knight && knight.GetPieceColor() == attackingColor && knight.GetPieceType() == PieceType.Knight)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    //check if there is a piece in the file that can attack the king(rook, cannon, king)
+    private bool FileAttackingKing(int x, int y, GameColor attackingColor)
+    {
+        List<Piece> piecesOnFile = new List<Piece>();
+
+        int pieceCounter = 0;
+
+        //check for the pieces on the file up, loop until got to the end or found 2 pieces on the file
+        for (int i = y + 1; i < Constants.BOARD_HEIGHT && pieceCounter  < 2; i++)
+        {
+            Piece piece = FindPiece(x, i);
+            
+            if (piece)
+            {
+                if (pieceCounter == 0)
+                {
+                    if (piece.GetPieceColor() == attackingColor && (piece.GetPieceType() == PieceType.King || piece.GetPieceType() == PieceType.Rook))
+                    {
+                        return true;
+                    }
+                }
+                else
+                {
+                    if (piece.GetPieceColor() == attackingColor && piece.GetPieceType() == PieceType.Cannon)
+                    {
+                        return true;
+                    }
+                }
+                pieceCounter++;
+            }
+        }
+        
+        //reset the piece counter
+        pieceCounter = 0;
+        //check for the pieces on the file down, loop until got to the end or found 2 pieces on the file
+        for (int i = y - 1; i >= 0 && pieceCounter < 2; i--)
+        {
+            Piece piece = FindPiece(x, i);
+            
+            if (piece)
+            {
+                if (pieceCounter == 0)
+                {
+                    if (piece.GetPieceColor() == attackingColor && (piece.GetPieceType() == PieceType.King || piece.GetPieceType() == PieceType.Rook))
+                    {
+                        return true;
+                    }
+                }
+                else
+                {
+                    if (piece.GetPieceColor() == attackingColor && piece.GetPieceType() == PieceType.Cannon)
+                    {
+                        return true;
+                    }
+                }
+                pieceCounter++;
+            }
+        }
+
+        //reset the piece counter
+        pieceCounter = 0;
+        //check for the pieces on the file down, loop until got to the end or found 2 pieces on the file
+        for (int i = x + 1; i < Constants.BOARD_WIDTH && pieceCounter < 2; i++)
+        {
+            Piece piece = FindPiece(i, y);
+            
+            if (piece)
+            {
+                if (pieceCounter == 0)
+                {
+                    if (piece.GetPieceColor() == attackingColor && (piece.GetPieceType() == PieceType.King || piece.GetPieceType() == PieceType.Rook))
+                    {
+                        return true;
+                    }
+                }
+                else
+                {
+                    if (piece.GetPieceColor() == attackingColor && piece.GetPieceType() == PieceType.Cannon)
+                    {
+                        return true;
+                    }
+                }
+                pieceCounter++;
+            }
+        }
+
+        //reset the piece counter
+        pieceCounter = 0;
+        //check for the pieces on the file down, loop until got to the end or found 2 pieces on the file
+        for (int i = x - 1; i >= 0 && pieceCounter < 2; i--)
+        {
+            Piece piece = FindPiece(i, y);
+            
+            if (piece)
+            {
+                if (pieceCounter == 0)
+                {
+                    if (piece.GetPieceColor() == attackingColor && (piece.GetPieceType() == PieceType.King || piece.GetPieceType() == PieceType.Rook))
+                    {
+                        return true;
+                    }
+                }
+                else
+                {
+                    if (piece.GetPieceColor() == attackingColor && piece.GetPieceType() == PieceType.Cannon)
+                    {
+                        return true;
+                    }
+                }
+                pieceCounter++;
+            }
+        }
+
+        return false;
+        
     }
 
     public bool IsDraw()
@@ -301,6 +514,10 @@ public class Board
         return !PiecesForCheckmate() || IsRepetitiveMove();
     }
 
+    public static bool InBorders(int x, int y)
+    {
+        return x >= 0 && x < Constants.BOARD_WIDTH && y >= 0 && y < Constants.BOARD_HEIGHT;
+    }
     private bool PiecesForCheckmate()
     {
         return pieceCount[PieceType.Soldier] > 1 || pieceCount[PieceType.Knight] != 0 || 

@@ -101,12 +101,6 @@ public class GameBoard : MonoBehaviour
         return board.FindPiece(x, y).GetPieceType() == PieceType.King;
     }
 
-    //return if position is in the board borders
-    public static bool CheckIfInBorders(int x, int y)
-    {
-        return x>=0 && y>=0 && x<9 && y < 10;
-    } 
-
     public void  UpdatePieceInBoard(Move move)
     {
         uIManager.DeleteDots();
@@ -139,7 +133,7 @@ public class GameBoard : MonoBehaviour
         {
             //find the enemy king and draw the check circle
             Position enemyKingPos = board.FindKing(gameManager.GetTurnColor().OppositeColor()).GetPos();
-            uIManager.CheckCircleUI((int)enemyKingPos.x, (int)enemyKingPos.y, true);
+            uIManager.CheckCircleUI(enemyKingPos.x, enemyKingPos.y, true);
 
             //if enemy in check and dont have moves is checkmate
             if(!board.PlayerHaveMoves(turnColor.OppositeColor()))

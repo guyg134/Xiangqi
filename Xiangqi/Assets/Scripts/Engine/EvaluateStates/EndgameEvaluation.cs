@@ -21,7 +21,7 @@ public class EndgameEvaluation : EvaluationState
     protected const int rookValue = 850;
 
     public EndgameEvaluation() : base()
-    {
+    {/*
        PieceValues[(int)PieceType.King] = kingValue;
         PieceValues[(int)PieceType.Soldier] = soliderValue;
         PieceValues[(int)PieceType.Advisor] = advisorValue;
@@ -52,6 +52,6 @@ public class EndgameEvaluation : EvaluationState
         eval += playerIntersectionWeight * (PlayerPiecesIntersectionEvaluateSum / PiecesCounterPlayer);
         eval -= enemyIntersectionWeight * (EnemyPiecesIntersectionEvaluateSum / PiecesCounterEnemy);
 
-        return turnColor == GameColor.Red ? eval : -eval;
+        return turnColor == GameColor.Red ? eval : -eval;*/
     }
 }

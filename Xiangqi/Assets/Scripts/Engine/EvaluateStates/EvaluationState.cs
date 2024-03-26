@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 
 public abstract class EvaluationState
 {
+    /*
     protected int PiecesCounterPlayer { get; set; }
     protected int PiecesCounterEnemy { get; set; }
     protected int PiecesValueCounterPlayer { get; set; }
@@ -58,8 +59,8 @@ public abstract class EvaluationState
         GameColor turnColor = player.playerColor;
 
         // Get the bitboards of the attacking squares for each player
-        BigInteger playerAttackingBitboard = BitBoard.IntersectionsUnderAttackByColor(board, turnColor);
-        BigInteger enemyAttackingBitboard = BitBoard.IntersectionsUnderAttackByColor(board, turnColor.OppositeColor());
+        BigInteger playerAttackingBitboard = board.GetAttackingSquaresBitboard(turnColor);
+        BigInteger enemyAttackingBitboard = board.GetAttackingSquaresBitboard(turnColor.OppositeColor());
 
         foreach (Piece piece in board.GetPiecesList())
         {
@@ -182,9 +183,9 @@ public abstract class EvaluationState
         bool isPlayerPiece = piece.GetPieceColor() == turnPlayer.playerColor;
         // If the piece is player piece add the piece intersection value to the player pieces intersection evaluate sum, else add it to the enemy pieces intersection evaluate sum
         if(isPlayerPiece)
-            PlayerPiecesIntersectionEvaluateSum += EvaluatePieceIntersectionsTables.GetPieceIntersectionValue(gameState, piece.GetPieceType(), piece.GetX(), piece.GetY(), turnPlayer.playOnDownSide);
+            PlayerPiecesIntersectionEvaluateSum += EvaluatePieceIntersectionsTables.GetPieceIntersectionValue(gameState, piece.GetPieceType(), piece.GetPos(), turnPlayer.playOnDownSide);
         else
-            EnemyPiecesIntersectionEvaluateSum += EvaluatePieceIntersectionsTables.GetPieceIntersectionValue(gameState, piece.GetPieceType(), piece.GetX(), piece.GetY(), !turnPlayer.playOnDownSide);
+            EnemyPiecesIntersectionEvaluateSum += EvaluatePieceIntersectionsTables.GetPieceIntersectionValue(gameState, piece.GetPieceType(), piece.GetPos(), !turnPlayer.playOnDownSide);
     }
 
 
@@ -252,7 +253,7 @@ public abstract class EvaluationState
         }
         return true;
     }
-
+*/
 }
    
 

@@ -36,7 +36,7 @@ public class EvaluateConstants
     public static readonly int[] PieceValues = new int[8] {0, kingValue, soliderValue, knightValue, elephantValue, cannonValue, advisorValue, rookValue};
 
     public const float PieceValueDiffWeight = 1.5f;
-    public const float PiecesUnderAttackWeight = 0.25f;
+    public const float PiecesUnderAttackWeight = 0.5f;
     public const float PiecesIntersectionsWeight = 0.8f;
     public const float PiecesMobilityWeight = 10f;
     public const float KingSafetyWeight = 10f;
