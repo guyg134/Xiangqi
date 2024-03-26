@@ -19,7 +19,8 @@ public class SearchMove : MonoBehaviour
     [SerializeField] private bool doRandomMove = false;
 
     public static int o = 0;
-    private static double worthTime;
+    public static double sumTimeToMove = 0;
+    public static double worthTime;
 
     private const double tolerance = 0.1;
 
@@ -46,7 +47,7 @@ public class SearchMove : MonoBehaviour
         {
             worthTime = timeToMove;
         }
-
+        sumTimeToMove += timeToMove;
         print("time took to move: " + timeToMove + "worth time to move: " + worthTime + " function calls: " + o);
 
         //do the move
@@ -78,16 +79,19 @@ public class SearchMove : MonoBehaviour
         Piece piece;
         int x;
         int y;
+        List<Position> validMoves = new List<Position>();
         do{
             
             x = Random.Range(0, 9);
             y = Random.Range(0, 10);
             
             piece = gameBoard.GetBoard().FindPiece(x, y);
-        }while(!piece || piece.GetPieceColor() != Player.playerColor || piece.GetValidMoves(gameBoard.GetBoard()).Count == 0);
-        //piece.GetDots();
+            if(piece && piece.GetPieceColor() == Player.playerColor)
+            {
+                validMoves = piece.GetValidMoves(gameBoard.GetBoard());
+            }
+        }while(validMoves.Count == 0);
 
-        List<Position> validMoves = piece.GetValidMoves(gameBoard.GetBoard());
         int i = Random.Range(0, validMoves.Count);
 
         return new Move(x, y, validMoves[i].x, validMoves[i].y, piece);
@@ -99,9 +103,9 @@ public class SearchMove : MonoBehaviour
         GameColor playerColor = Player.playerColor;
         //set the best evaluation to the lowest possible value if the player is red, and to the highest possible value if the player is black
         if(playerColor == GameColor.Red)
-            bestEval   = -1000000000;       
+            bestEval   = -EvaluateConstants.Infinity;       
         else
-            bestEval = 1000000000;     
+            bestEval = EvaluateConstants.Infinity;     
         
         List<Move> bestMoves = new List<Move>();
         Board copyBoard = gameBoard.GetBoardCopy();
@@ -117,41 +121,36 @@ public class SearchMove : MonoBehaviour
                 foreach(Position pos in piece.GetValidMoves(copyBoard))
                 {
                     //create clone to save the board before
-                    Move move = new Move(piece.GetX(), piece.GetY(), pos.x, pos.y, piece, copyBoard.FindPiece(pos.x, pos.y));
+                    Move move = new Move(piece.GetPos(), pos, piece, copyBoard.FindPiece(pos));
 
                     //do the move on the clone
                     copyBoard.MovePieceOnBoard(move);
                     Evaluate evaluate = new Evaluate();
                     //evaluate the move
                     double evalMove = evaluate.EvaluatePosition(copyBoard, Player);
-                    //if the player is red, so the best move is the one with the highest evaluation
-                    //if the player is black, so the best move is the one with the lowest evaluation
-                    if ((playerColor == GameColor.Red && evalMove > bestEval) || (playerColor == GameColor.Black && evalMove < bestEval))
+
+                    // Determine if the current move is the best based on player color
+                    bool isBetterMove = (playerColor == GameColor.Red && evalMove > bestEval) ||
+                                    (playerColor == GameColor.Black && evalMove < bestEval);
+
+                    if (isBetterMove)
                     {
-                        //if the move is a checkmate, set the evaluation to the checkmate value
-                        if(evaluate.CheckMateNextMove(copyBoard, playerColor.OppositeColor()))
+                        GameColor enemyColor = playerColor.OppositeColor();
+                        //if the move is cause checkmate on 1 move for the enemy, set the evaluation to the checkmate value
+                        if(evaluate.CheckMateNextMove(copyBoard, enemyColor))
                         {
-                            evalMove = playerColor == GameColor.Red ? -Evaluate.checkMateValue : Evaluate.checkMateValue;
-                            //if the best moves list is empty, set the best evaluation to the evaluation of checkmate
-                            if(!bestMoves.Any())
-                            {
-                                bestEval = evalMove;
-                            }
+                            evalMove = playerColor == GameColor.Red ? -EvaluateConstants.CheckMateValue : EvaluateConstants.CheckMateValue;
                         }
                         //if the move is a draw
                         else if(copyBoard.IsDraw())
                         {
                             evalMove = 0;
-                            //if the best moves list is empty, set the best evaluation to the evaluation of Draw
-                            if(!bestMoves.Any())
-                            {
-                                bestEval = evalMove;
-                            }
                         }
-                        //if the move is not a checkmate or a draw and it better than the best move, set the best evaluation to the evaluation of the move
-                        else
+
+                        // Update the best move and evaluation if the current move is better
+                        if (!bestMoves.Any() || evalMove > bestEval)
                         {
-                            bestMoves.Clear();
+                            bestMoves.Clear(); // Clear the previous best moves list
                             bestEval = evalMove;
                         }
                     }

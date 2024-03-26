@@ -286,7 +286,6 @@ public class Board : MonoBehaviour
         bool isKingUnderAttackAfterMove = boardAfterMove.IsCheck(attackingColor);
         boardAfterMove.UndoLastMove();
 
-        SearchMove.o++;
 
         return isKingUnderAttackAfterMove;
     }

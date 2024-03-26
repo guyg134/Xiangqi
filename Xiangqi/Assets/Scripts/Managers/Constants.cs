@@ -6,6 +6,8 @@ public class Constants
     public const int BOARD_WIDTH = 9;
     public const int BOARD_HEIGHT = 10;
     public const int CastleSize = 3;
+    public const int CastleLeftX = 3;
+    public const int CastleRightX = 5;
 
     //when player playing red pieces
     public const string StartFenRed = "rneakaenr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNEAKAENR";
@@ -35,12 +37,15 @@ public class EvaluateConstants
 
     public static readonly int[] PieceValues = new int[8] {0, kingValue, soliderValue, knightValue, elephantValue, cannonValue, advisorValue, rookValue};
 
-    public const float PieceValueDiffWeight = 1.5f;
+    public const float PieceValueDiffWeight = 2.5f;
     public const float PiecesUnderAttackWeight = 0.5f;
-    public const float PiecesIntersectionsWeight = 0.8f;
+    public const float PiecesIntersectionsWeight = 1f;
     public const float PiecesMobilityWeight = 10f;
     public const float KingSafetyWeight = 10f;
-    public const float CastleSafetyWeight = 30f;
+    public const float CastleSafetyWeight = 20f;
 
-    public const int CheckWeight = 200;
+    public const int CheckValue = 200;
+    public const int CheckMateValue = 20000;
+
+    public const int Infinity = 9999999;
 }

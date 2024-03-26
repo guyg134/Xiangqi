@@ -96,7 +96,7 @@ public class GameManager : MonoBehaviour
     public void ChangeTurn()
     {
         //evaluate the current board for the player that just played
-        float eval = 0;//(float)new Evaluate().EvaluateCurrentPosition(gameBoard.GetBoard(), players[turnInt])/Evaluate.checkMateValue;
+        float eval = (float)new Evaluate().EvaluateCurrentPosition(gameBoard.GetBoard(), players[turnInt])/EvaluateConstants.CheckMateValue;
 
         turnInt ^= 1;
 
@@ -129,6 +129,7 @@ public class GameManager : MonoBehaviour
     {
         GameColor winnerColor = GetTurnColor();
         print("GG good game the winner is " + winnerColor.ToString());
+        print("Worth Time Of Bot " + SearchMove.worthTime + " Average Time Of Bot " + SearchMove.sumTimeToMove/movesCounter);
         uIManager.CheckMateText(winnerColor);
         StopGame();
     }
