@@ -78,6 +78,11 @@ public class Board : MonoBehaviour
         return gameState;
     }
 
+    public BigInteger GetBitboardByColor(GameColor gameColor)
+    {
+        return bitBoard.GetBitboardByColor(gameColor);
+    }
+
     //add new piece to the board
     public void AddPiece(Piece piece)
     {

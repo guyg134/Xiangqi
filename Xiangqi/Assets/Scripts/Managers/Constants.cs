@@ -37,15 +37,17 @@ public class EvaluateConstants
 
     public static readonly int[] PieceValues = new int[8] {0, kingValue, soliderValue, knightValue, elephantValue, cannonValue, advisorValue, rookValue};
 
-    public const float PieceValueDiffWeight = 2.5f;
-    public const float PiecesUnderAttackWeight = 0.5f;
-    public const float PiecesIntersectionsWeight = 1f;
-    public const float PiecesMobilityWeight = 10f;
-    public const float KingSafetyWeight = 10f;
-    public const float CastleSafetyWeight = 20f;
+    public const float PieceValueDiffWeight = 3f;
+    public const float PiecesUnderAttackWeight = 0.25f;
+    public const float PiecesIntersectionsWeight = 9.5f;
+    public const float PiecesMobilityWeight = 1f;
+    public const float KingSafetyWeight = 1f;
+    public const float KingMobilityWeight = 5f;
+    public const float CastleSafetyWeight = 0.5f;
+    public const float PawnStructureWeight = 1f;
 
-    public const int CheckValue = 200;
-    public const int CheckMateValue = 20000;
+    public const int CheckValue = 100;
+    public const int CheckMateValue = 25000;
 
     public const int Infinity = 9999999;
 }

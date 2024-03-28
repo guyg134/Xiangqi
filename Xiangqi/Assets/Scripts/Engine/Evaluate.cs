@@ -109,8 +109,8 @@ public class Evaluate
         }
 
         return false;
-
     }
+
 
     public static double EvaluateNumberByColor(double eval, GameColor turnColor)
     {
@@ -202,15 +202,22 @@ public class Evaluate
                 if(attackingPieces.Count == 1)
                 {
                     //If there is only 1 piece attacking it
-                    int attackingPiece = EvaluateConstants.PieceValues[(int)attackingPieces[0].GetPieceType()];
+                    Piece attackingPiece = attackingPieces[0];
+                    int attackingPieceValue = EvaluateConstants.PieceValues[(int)attackingPiece.GetPieceType()];
 
+                    //if the enemy piece is a rook under attack so the player piece that attacking must not be a cannon
+                    if(piece.GetPieceType() == PieceType.Rook && attackingPiece.GetPieceType() == PieceType.Cannon)
+                    {
+                        underAttack = 0;
+                    }
+                    
                     // If the piece is defended by the enemy pieces
-                    if((bitPiecePos & enemyAttackingBitboard) != 0)
+                    else if((bitPiecePos & enemyAttackingBitboard) != 0)
                     {
                         //if the piece is more valuable than the attacking piece
-                        if(underAttack > attackingPiece)
+                        if(underAttack > attackingPieceValue)
                         {
-                            underAttack -= attackingPiece;
+                            underAttack -= attackingPieceValue;
                         }
                         //if the piece is less valuable than the attacking piece, the piece is not under attack
                         else
@@ -244,9 +251,17 @@ public class Evaluate
         if(piece.GetPieceType() == PieceType.Knight)
         {
             if(isPlayerPiece)
-                KnightMovesCounterPlayer += BitBoard.BitboardToPosition(piece.GetPieceBitboardMove(CurrentBoard)).Count;
+            {
+                //get the knight moves counter of the player by xor the knight moves bitboard with the player bitboard
+                KnightMovesCounterPlayer += BitBoard.BitboardToPosition(piece.GetPieceBitboardMove(CurrentBoard) ^ 
+                CurrentBoard.GetBitboardByColor(piece.GetPieceColor())).Count;
+            }
             else
-                KnightMovesCounterEnemy += BitBoard.BitboardToPosition(piece.GetPieceBitboardMove(CurrentBoard)).Count;
+            {
+                //get the knight moves counter of the enemy by xor the knight moves bitboard with the enemy bitboard
+                KnightMovesCounterEnemy += BitBoard.BitboardToPosition(piece.GetPieceBitboardMove(CurrentBoard) ^ 
+                CurrentBoard.GetBitboardByColor(piece.GetPieceColor())).Count;
+            }
         }
     }
 
@@ -273,7 +288,7 @@ public class Evaluate
         {
             if(!CurrentBoard.PlayerHaveMoves(king.GetPieceColor()))
             {
-                KingSafety += EvaluateConstants.CheckMateValue;
+                KingSafety -= EvaluateConstants.CheckMateValue;
             }
             KingSafety -= EvaluateConstants.CheckValue;
         }
@@ -283,6 +298,9 @@ public class Evaluate
         BigInteger castleUnderAttack = BitBoard.GetCastleBitboard(kingOnDownSide) & (isPlayerKing ? enemyAttackingBitboard : playerAttackingBitboard);
         // Add the castle safety * weight to the king safety
         KingSafety -= (int)(BitBoard.BitboardToPosition(castleUnderAttack).Count * EvaluateConstants.CastleSafetyWeight);
+
+        //king mobility
+        KingSafety += (int)(BitBoard.BitboardToPosition(king.GetPieceBitboardMove(CurrentBoard)).Count * EvaluateConstants.KingMobilityWeight);
 
         if(isPlayerKing)
         {
@@ -304,7 +322,10 @@ public class Evaluate
 
         
         // Add the value difference of the pieces that are under attack
-        score += UnderAttackOfEnemy * EvaluateConstants.PiecesUnderAttackWeight;
+        //score += UnderAttackOfEnemy * EvaluateConstants.PiecesUnderAttackWeight;
+
+        // Add the value difference of the pieces that are under attack
+        score -= UnderAttackOfPlayer * EvaluateConstants.PiecesUnderAttackWeight;
 
         // Add the value difference of the avg pieces Intersections rating of pieces that are safe(Dont want to consider pieces differences here, so i use avg)
         score += ((PlayerPiecesIntersectionEvaluateSum/PiecesCounterPlayer) - (EnemyPiecesIntersectionEvaluateSum/PiecesCounterEnemy)) 

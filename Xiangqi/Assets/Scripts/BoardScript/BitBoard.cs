@@ -26,7 +26,7 @@ public class BitBoard
         blackBitboard = BoardToBitboardByColor(board, GameColor.Black);
     }
 
-    public BigInteger GetColorBitboard(GameColor color)
+    public BigInteger GetBitboardByColor(GameColor color)
     {
         return color == GameColor.Red ? redBitboard : blackBitboard;
     }

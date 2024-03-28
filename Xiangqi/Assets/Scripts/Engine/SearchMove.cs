@@ -61,7 +61,7 @@ public class SearchMove : MonoBehaviour
             return DoRandomMove();
 
         //if moves played are less than 40, try to do an opening move
-        if(movesPlayed < 40)
+        if(false)//(movesPlayed < 40)
         {
             Move openingMove = OpeningMove();
             if(openingMove != null)
@@ -130,10 +130,7 @@ public class SearchMove : MonoBehaviour
                     double evalMove = evaluate.EvaluatePosition(copyBoard, Player);
 
                     // Determine if the current move is the best based on player color
-                    bool isBetterMove = (playerColor == GameColor.Red && evalMove > bestEval) ||
-                                    (playerColor == GameColor.Black && evalMove < bestEval);
-
-                    if (isBetterMove)
+                    if (isBetterMove(evalMove, bestEval))
                     {
                         GameColor enemyColor = playerColor.OppositeColor();
                         //if the move is cause checkmate on 1 move for the enemy, set the evaluation to the checkmate value
@@ -148,7 +145,7 @@ public class SearchMove : MonoBehaviour
                         }
 
                         // Update the best move and evaluation if the current move is better
-                        if (!bestMoves.Any() || evalMove > bestEval)
+                        if (!bestMoves.Any() || isBetterMove(evalMove, bestEval))
                         {
                             bestMoves.Clear(); // Clear the previous best moves list
                             bestEval = evalMove;
@@ -169,6 +166,20 @@ public class SearchMove : MonoBehaviour
         int randomIndex = Random.Range(0, bestMoves.Count);
         return bestMoves[randomIndex];
     } 
+
+    private bool isBetterMove(double evalMove, double bestEval)
+    {
+        bool isBetterMove = false;
+        GameColor playerColor = Player.playerColor;
+
+        if((playerColor == GameColor.Red && evalMove > bestEval) ||
+            (playerColor == GameColor.Black && evalMove < bestEval))
+        {
+            isBetterMove = true;
+        }
+
+        return isBetterMove;
+    }
 
     private Move OpeningMove()
     {
